@@ -1,0 +1,123 @@
+{
+  "info": {
+    "name": "FinalYear Project API",
+    "description": "Phase 1 – API collection for health, LLM, embeddings, vector store, and graph endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000/api/v1", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "LLM",
+      "item": [
+        {
+          "name": "Generate Response",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/llm/generate",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Explain vector databases in simple terms.\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Embeddings",
+      "item": [
+        {
+          "name": "Embed Text",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/embeddings/embed",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Hello, world!\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vector Store",
+      "item": [
+        {
+          "name": "Add Document",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/vectors/add",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"FastAPI is a modern, fast web framework for building APIs with Python.\",\n  \"metadata\": { \"source\": \"docs\", \"topic\": \"fastapi\" }\n}"
+            }
+          }
+        },
+        {
+          "name": "Search Documents",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/vectors/search",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What is a fast Python API framework?\",\n  \"top_k\": 3\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Graph (Neo4j)",
+      "item": [
+        {
+          "name": "Create Node",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/graph/node",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Concept\",\n  \"properties\": { \"name\": \"Vector Database\", \"description\": \"Stores and retrieves embeddings\" }\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Nodes",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/graph/nodes/Concept"
+          }
+        },
+        {
+          "name": "Create Relationship",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/graph/relationship",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_label\": \"Concept\",\n  \"from_props\": { \"name\": \"FAISS\" },\n  \"rel_type\": \"IS_A\",\n  \"to_label\": \"Concept\",\n  \"to_props\": { \"name\": \"Vector Database\" }\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
