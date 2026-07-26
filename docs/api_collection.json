@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "FinalYear Project API",
-    "description": "Phase 1 – API collection for health, LLM, embeddings, vector store, and graph endpoints.",
+    "description": "Phase 1 – API collection. Module 1: Document Ingestion added.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -16,6 +16,68 @@
           "request": {
             "method": "GET",
             "url": "{{base_url}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Module 1 – Document Ingestion",
+      "item": [
+        {
+          "name": "Upload Document (PDF)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/documents/upload",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/your/document.pdf",
+                  "description": "Select a PDF, DOCX, TXT, HTML, or PPTX file"
+                },
+                {
+                  "key": "department",
+                  "value": "HR",
+                  "type": "text",
+                  "description": "Optional department label"
+                },
+                {
+                  "key": "permissions",
+                  "value": "private",
+                  "type": "text",
+                  "description": "private | internal | public"
+                },
+                {
+                  "key": "language",
+                  "value": "en",
+                  "type": "text",
+                  "description": "Optional language hint"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Document by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/documents/DOC_XXXXXXXX",
+            "description": "Replace DOC_XXXXXXXX with the document_id returned from upload."
+          }
+        },
+        {
+          "name": "List All Documents",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/documents/?skip=0&limit=20",
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
           }
         }
       ]
@@ -65,7 +127,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"text\": \"FastAPI is a modern, fast web framework for building APIs with Python.\",\n  \"metadata\": { \"source\": \"docs\", \"topic\": \"fastapi\" }\n}"
+              "raw": "{\n  \"text\": \"FastAPI is a modern, fast web framework.\",\n  \"metadata\": { \"source\": \"docs\" }\n}"
             }
           }
         },
@@ -77,7 +139,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"What is a fast Python API framework?\",\n  \"top_k\": 3\n}"
+              "raw": "{\n  \"query\": \"fast Python API framework\",\n  \"top_k\": 3\n}"
             }
           }
         }
@@ -94,7 +156,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"label\": \"Concept\",\n  \"properties\": { \"name\": \"Vector Database\", \"description\": \"Stores and retrieves embeddings\" }\n}"
+              "raw": "{\n  \"label\": \"Concept\",\n  \"properties\": { \"name\": \"Vector Database\" }\n}"
             }
           }
         },
@@ -103,18 +165,6 @@
           "request": {
             "method": "GET",
             "url": "{{base_url}}/graph/nodes/Concept"
-          }
-        },
-        {
-          "name": "Create Relationship",
-          "request": {
-            "method": "POST",
-            "url": "{{base_url}}/graph/relationship",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"from_label\": \"Concept\",\n  \"from_props\": { \"name\": \"FAISS\" },\n  \"rel_type\": \"IS_A\",\n  \"to_label\": \"Concept\",\n  \"to_props\": { \"name\": \"Vector Database\" }\n}"
-            }
           }
         }
       ]

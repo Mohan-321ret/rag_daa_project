@@ -48,6 +48,21 @@ class Settings(BaseSettings):
     # ── FAISS ─────────────────────────────────────────────────────────────────
     faiss_index_path: str = "./data/faiss_index"
 
+    # ── Document Ingestion ────────────────────────────────────────────────────
+    max_upload_size_mb: int = 25
+    temp_upload_dir: str = "./data/tmp_uploads"
+    doc_id_prefix: str = "DOC"
+    # Comma-separated list of allowed MIME types / extensions
+    allowed_extensions: str = ".pdf,.docx,.txt,.html,.pptx"
+
+    @property
+    def max_upload_bytes(self) -> int:
+        return self.max_upload_size_mb * 1024 * 1024
+
+    @property
+    def allowed_ext_list(self) -> list[str]:
+        return [e.strip().lower() for e in self.allowed_extensions.split(",")]
+
     # ── CORS ──────────────────────────────────────────────────────────────────
     allowed_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
 
