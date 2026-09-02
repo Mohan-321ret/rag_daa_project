@@ -1,118 +1,77 @@
 services:
 
-  # ── Backend (FastAPI) ───────────────────────────────────────────────────────
+  # ── Backend (FastAPI + Uvicorn) ──────────────────────────────────────────────
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: fyp_backend
+    container_name: daa_backend
     restart: unless-stopped
     ports:
       - "8000:8000"
-    env_file:
-      - ./backend/.env
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-finalyear_db}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - DATABASE_URL=postgresql+pg8000://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-finalyear_db}
+      - LLM_PROVIDER=${LLM_PROVIDER:-groq}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - GROQ_MODEL=${GROQ_MODEL:-qwen/qwen3.6-27b}
+      - FAISS_INDEX_PATH=./data/faiss_index
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+      - SECRET_KEY=${SECRET_KEY:-change_me_to_a_random_secret_key}
     volumes:
-      - ./backend:/app
-      - faiss_data:/app/data
+      - ./backend/data:/app/data
     depends_on:
       postgres:
         condition: service_healthy
-      neo4j:
-        condition: service_healthy
-      ollama:
-        condition: service_started
     networks:
-      - fyp_network
+      - daa_network
 
-  # ── Frontend (React + Vite) ─────────────────────────────────────────────────
+  # ── Frontend (Next.js) ──────────────────────────────────────────────────────
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: fyp_frontend
+    container_name: daa_frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
-    env_file:
-      - ./frontend/.env
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
     depends_on:
       - backend
     networks:
-      - fyp_network
+      - daa_network
 
   # ── PostgreSQL ──────────────────────────────────────────────────────────────
   postgres:
     image: postgres:15-alpine
-    container_name: fyp_postgres
+    container_name: daa_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: finalyear_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-finalyear_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d finalyear_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-finalyear_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - fyp_network
-
-  # ── Neo4j ───────────────────────────────────────────────────────────────────
-  neo4j:
-    image: neo4j:5-community
-    container_name: fyp_neo4j
-    restart: unless-stopped
-    environment:
-      NEO4J_AUTH: neo4j/neo4j_password
-      NEO4J_PLUGINS: '["apoc"]'
-      NEO4J_dbms_security_procedures_unrestricted: apoc.*
-    ports:
-      - "7474:7474"   # HTTP browser
-      - "7687:7687"   # Bolt protocol
-    volumes:
-      - neo4j_data:/data
-      - neo4j_logs:/logs
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:7474 || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 6
-    networks:
-      - fyp_network
-
-  # ── Ollama (Local LLM) ──────────────────────────────────────────────────────
-  ollama:
-    image: ollama/ollama:latest
-    container_name: fyp_ollama
-    restart: unless-stopped
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    # Uncomment below if you have an NVIDIA GPU:
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
-    networks:
-      - fyp_network
+      - daa_network
 
 # ── Volumes ─────────────────────────────────────────────────────────────────
 volumes:
   postgres_data:
-  neo4j_data:
-  neo4j_logs:
-  ollama_data:
-  faiss_data:
 
 # ── Networks ─────────────────────────────────────────────────────────────────
 networks:
-  fyp_network:
+  daa_network:
     driver: bridge

@@ -23,11 +23,20 @@ class Neo4jService:
 
     def connect(self) -> None:
         if self._driver is None:
-            self._driver = GraphDatabase.driver(
+            driver = GraphDatabase.driver(
                 settings.neo4j_uri,
                 auth=(settings.neo4j_user, settings.neo4j_password),
             )
-            self._driver.verify_connectivity()
+            try:
+                driver.verify_connectivity()
+            except Exception:
+                # Don't cache a driver that never actually connected – otherwise
+                # is_connected() would stale-return True on every later call
+                # (the `if self._driver is None` guard above would short-circuit
+                # past verify_connectivity() forever).
+                driver.close()
+                raise
+            self._driver = driver
 
     def close(self) -> None:
         if self._driver:

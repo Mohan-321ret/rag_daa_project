@@ -1,16 +1,77 @@
-# React + Vite
+# DAA-RAG Enterprise Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Enterprise Dynamic Adaptive Retrieval-Augmented Generation Platform — Full Frontend
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Next.js 14** (App Router)
+- **React 18** + **TypeScript**
+- **Tailwind CSS** + custom design system
+- **Framer Motion** — animations
+- **Recharts** — data visualization
+- **Zustand** — state management
+- **React Query** — data fetching
+- **React Hook Form** + **Zod** — forms & validation
+- **React Dropzone** — file uploads
+- **next-themes** — dark/light mode
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+# 1. Install dependencies
+npm install
 
-## Expanding the Oxlint configuration
+# 2. Start development server
+npm run dev
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+# 3. Open browser
+http://localhost:3000
+```
+
+The app redirects to `/dashboard` by default. Login page is at `/login`.
+
+## Pages
+
+| Route | Page |
+|-------|------|
+| `/login` | Authentication |
+| `/dashboard` | Enterprise Overview |
+| `/ingestion` | Knowledge Ingestion |
+| `/processing` | Document Processing |
+| `/evolution` | Knowledge Evolution |
+| `/repository` | Knowledge Repository |
+| `/query-intelligence` | Query Intelligence |
+| `/retrieval` | Adaptive Retrieval |
+| `/context-fusion` | Context Fusion |
+| `/llm` | Enterprise LLM Chat |
+| `/verification` | Evidence Verification |
+| `/learning` | Continuous Learning |
+| `/security` | Security & Governance |
+| `/monitor` | System Monitor |
+| `/query-history` | Query History |
+| `/settings` | Settings |
+| `/documents` | Document Details |
+
+## Architecture
+
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── (auth)/             # Auth routes (login)
+│   └── (dashboard)/        # Protected dashboard routes
+├── components/
+│   ├── layout/             # Sidebar, Navbar, DashboardLayout
+│   └── shared/             # Reusable UI components
+├── data/                   # Mock data
+├── lib/                    # Utilities
+├── store/                  # Zustand state
+└── types/                  # TypeScript interfaces
+```
+
+## Design System
+
+- **Dark mode default** with light mode support
+- Glassmorphism cards with `bg-white/[0.03]` + `border-white/[0.07]`
+- Gradient accents: blue → violet → cyan
+- Smooth Framer Motion animations throughout
+- Responsive layout with collapsible sidebar

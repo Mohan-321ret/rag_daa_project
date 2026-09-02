@@ -1,0 +1,38 @@
+Part a: Artificial Neuron
+This section implements a simple artificial neuron, demonstrating the weighted sum, bias, and applying common activation functions like Sigmoid and ReLU.
+
+Part b: Forward Propagation
+This section builds a simple neural network and demonstrates the forward propagation process, using ReLU in the hidden layer and Sigmoid in the output layer.
+
+Part c: Dataset Loading & Preprocessing
+This section focuses on loading the Fashion MNIST dataset, inspecting its structure, normalizing pixel values, reshaping images, and visualizing sample images with their labels.
+
+Part d: Backpropagation & Dense Model
+This section builds a simple dense neural network, compiles it with the Adam optimizer and crossentropy loss, and trains the model.
+
+Part e: Core Deep Learning Components
+This section improves the dense model using techniques like multiple dense layers, dropout, and batch normalization, and includes an analysis of overfitting vs. underfitting.
+
+Part f: CNN Fundamentals
+This section builds a Convolutional Neural Network (CNN) model using Conv2D, MaxPooling, Flatten, and Dense layers, with ReLU activation and Softmax output.
+
+Part g: CNN Evaluation
+This section evaluates the trained CNN model using accuracy, precision, and recall metrics.
+
+Part h: Visualization
+This section plots the training vs validation accuracy and training vs validation loss for the CNN model.
+
+Part i: Prediction
+This section selects a few test images, displays them, predicts their labels using the trained CNN model, and compares the actual vs. predicted labels.
+
+Part j: Sequence Modeling using LSTM
+This section converts image data into sequence form, builds an LSTM model, and trains it on the sequence data.
+
+Part k: NLP Concept Mapping
+This section explains how sequence modeling relates to Natural Language Processing (NLP), introduces the embedding concept, and demonstrates a simple token-like representation using labels.
+
+Part l: Transfer Learning
+This section utilizes a pre-trained CNN model (MobileNetV2, suitable for smaller images) and adapts it for the Fashion MNIST classification task. This involves freezing initial layers and fine-tuning later layers.
+
+Part m: Segmentation Concept
+This section provides a conceptual explanation of image segmentation, the U-Net architecture, and how segmentation differs from image classification.
