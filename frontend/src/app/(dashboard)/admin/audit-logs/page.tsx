@@ -32,9 +32,9 @@ interface AuditEvent {
 }
 
 const SEVERITY_COLORS = {
-  info:     'bg-blue-500/10 text-blue-300 border-blue-500/20',
-  warning:  'bg-amber-500/10 text-amber-300 border-amber-500/20',
-  critical: 'bg-red-500/10 text-red-300 border-red-500/20',
+  info:     'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-200 dark:border-blue-500/20',
+  warning:  'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-200 dark:border-amber-500/20',
+  critical: 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 border-red-200 dark:border-red-500/20',
 }
 
 const ACTION_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -140,7 +140,7 @@ export default function AuditLogsPage() {
         title="Audit Logs"
         description="Searchable audit trail of all administrative actions across the platform."
         breadcrumbs={[{ label: 'Admin Panel', href: '/admin/users' }, { label: 'Audit Logs' }]}
-        badge={<span className="px-2 py-0.5 rounded-full text-[10px] bg-orange-500/15 text-orange-300 border border-orange-500/20">Live feed</span>}
+        badge={<span className="px-2 py-0.5 rounded-full text-[10px] bg-orange-500/15 text-orange-600 dark:text-orange-300 border border-orange-500/20">Live feed</span>}
         action={
           <Btn size="sm" variant="ghost" onClick={load} className="flex items-center gap-1.5 text-xs">
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
@@ -148,12 +148,12 @@ export default function AuditLogsPage() {
         }
       >
         {/* Category Tabs */}
-        <div className="flex flex-wrap gap-1 bg-white/[0.03] border border-white/[0.07] rounded-xl p-1 w-fit mb-5">
+        <div className="flex flex-wrap gap-1 bg-gray-100 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.07] rounded-xl p-1 w-fit mb-5">
           {TABS.map(t => {
             const Icon = t.icon
             return (
               <button key={t.id} onClick={() => selectTab(t.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === t.id ? `${t.color} text-white` : 'text-white/40 hover:text-white/70'}`}>
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === t.id ? `${t.color} text-white` : 'text-gray-500 dark:text-white/40 hover:text-gray-900 dark:hover:text-white/70'}`}>
                 <Icon className="w-3.5 h-3.5" />{t.label}
               </button>
             )
@@ -162,14 +162,14 @@ export default function AuditLogsPage() {
 
         {/* Search */}
         <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-white/30" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search actions, actors, resources…"
-            className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-orange-500/50"
+            className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] rounded-xl pl-9 pr-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/25 focus:outline-none focus:border-orange-500/50"
           />
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-16 gap-2 text-white/40">
+          <div className="flex items-center justify-center py-16 gap-2 text-gray-400 dark:text-white/40">
             <Loader2 className="w-5 h-5 animate-spin" /><span className="text-sm">Loading audit log…</span>
           </div>
         ) : (
@@ -181,24 +181,24 @@ export default function AuditLogsPage() {
                   key={event.id}
                   initial={{ opacity: 0, x: -4 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="flex items-start gap-3 p-3.5 bg-white/[0.02] border border-white/[0.05] rounded-xl hover:border-white/10 hover:bg-white/[0.03] transition-all"
+                  className="flex items-start gap-3 p-3.5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.05] rounded-xl hover:border-gray-300 dark:hover:border-white/10 hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-all shadow-sm"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-white/[0.05] flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <ActionIcon className="w-3.5 h-3.5 text-white/40" />
+                  <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-white/[0.05] flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <ActionIcon className="w-3.5 h-3.5 text-gray-500 dark:text-white/40" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-white/80">{event.action}</span>
+                      <span className="text-sm font-medium text-gray-800 dark:text-white/80">{event.action}</span>
                       <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${SEVERITY_COLORS[event.severity]}`}>
                         {event.severity}
                       </span>
                     </div>
-                    <p className="text-xs text-white/40 mt-0.5">{event.resource}</p>
-                    {event.details && <p className="text-[11px] text-white/25 mt-0.5">{event.details}</p>}
+                    <p className="text-xs text-gray-500 dark:text-white/40 mt-0.5">{event.resource}</p>
+                    {event.details && <p className="text-[11px] text-gray-400 dark:text-white/25 mt-0.5">{event.details}</p>}
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-[11px] text-white/30">{event.actor}</p>
-                    <p className="text-[10px] text-white/20 mt-0.5 flex items-center gap-1 justify-end">
+                    <p className="text-[11px] text-gray-500 dark:text-white/30">{event.actor}</p>
+                    <p className="text-[10px] text-gray-400 dark:text-white/20 mt-0.5 flex items-center gap-1 justify-end">
                       <Clock className="w-2.5 h-2.5" />{formatDateTime(event.timestamp)}
                     </p>
                   </div>
@@ -206,12 +206,12 @@ export default function AuditLogsPage() {
               )
             })}
             {filtered.length === 0 && (
-              <div className="text-center py-10 text-white/30 text-sm">No audit events found</div>
+              <div className="text-center py-10 text-gray-400 dark:text-white/30 text-sm">No audit events found</div>
             )}
           </div>
         )}
 
-        <p className="text-[11px] text-white/20 mt-4">
+        <p className="text-[11px] text-gray-400 dark:text-white/20 mt-4">
           Note: Events currently sourced from simulated data. A dedicated audit-log backend endpoint will be added in a future phase.
         </p>
       </AdminSectionShell>

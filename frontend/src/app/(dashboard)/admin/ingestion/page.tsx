@@ -159,9 +159,15 @@ export default function DataInjectionDashboardPage() {
     accept: {
       'application/pdf': ['.pdf'],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'text/html': ['.html'],
+      'application/msword': ['.doc'],
+      'text/html': ['.html', '.htm'],
       'text/plain': ['.txt'],
       'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
+      'application/vnd.ms-powerpoint': ['.ppt'],
+      'text/csv': ['.csv'],
+      'application/csv': ['.csv'],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'application/vnd.ms-excel': ['.xls', '.xlsx'],
     },
   })
 
@@ -180,26 +186,26 @@ export default function DataInjectionDashboardPage() {
   const columns = [
     { key: 'original_filename', label: 'Document', render: (_: unknown, row: JobRow) => (
       <div>
-        <p className="text-xs font-medium text-white/80 max-w-[220px] truncate">{row.original_filename}</p>
-        <p className="text-[10px] text-white/30">{row.job_id}{row.document_id ? ` · ${row.document_id}` : ''}</p>
+        <p className="text-xs font-medium text-gray-800 dark:text-white/80 max-w-[220px] truncate">{row.original_filename}</p>
+        <p className="text-[10px] text-gray-400 dark:text-white/30">{row.job_id}{row.document_id ? ` · ${row.document_id}` : ''}</p>
       </div>
     )},
     { key: 'status', label: 'Status', render: (v: unknown, row: JobRow) => (
       <div className="flex items-center gap-1.5">
         <StatusBadge status={String(v)} />
         {row.status === 'processing' && row.current_stage && (
-          <span className="text-[10px] text-white/40">{stageLabels[row.current_stage] ?? row.current_stage}</span>
+          <span className="text-[10px] text-gray-500 dark:text-white/40">{stageLabels[row.current_stage] ?? row.current_stage}</span>
         )}
       </div>
     )},
     { key: 'action', label: 'Type', render: (v: unknown) => (
-      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-white/[0.06] text-white/50">{v ? String(v) : '—'}</span>
+      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-gray-100 dark:bg-white/[0.06] text-gray-600 dark:text-white/50">{v ? String(v) : '—'}</span>
     )},
-    { key: 'retry_count', label: 'Retries', render: (v: unknown) => <span className="text-xs text-white/60">{Number(v)}</span> },
-    { key: 'created_at', label: 'Created', sortable: true, render: (v: unknown) => <span className="text-[11px] text-white/40">{formatDateTime(String(v))}</span> },
+    { key: 'retry_count', label: 'Retries', render: (v: unknown) => <span className="text-xs text-gray-600 dark:text-white/60">{Number(v)}</span> },
+    { key: 'created_at', label: 'Created', sortable: true, render: (v: unknown) => <span className="text-[11px] text-gray-400 dark:text-white/40">{formatDateTime(String(v))}</span> },
     { key: 'actions', label: '', render: (_: unknown, row: JobRow) => (
       <div className="flex items-center justify-end gap-1.5" onClick={e => e.stopPropagation()}>
-        <button onClick={() => setInspecting(row)} title="Inspect" className="p-1.5 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-colors">
+        <button onClick={() => setInspecting(row)} title="Inspect" className="p-1.5 rounded-lg text-gray-400 dark:text-white/30 hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors">
           <Eye className="w-3.5 h-3.5" />
         </button>
         <Can permission={Permission.INGESTION_RETRY}>
@@ -209,7 +215,7 @@ export default function DataInjectionDashboardPage() {
                 onClick={() => runAction(row.job_id, 'retry')}
                 disabled={!row.document_id || busyJobId === row.job_id}
                 title={row.document_id ? 'Retry' : 'No extracted text saved — re-upload instead'}
-                className="p-1.5 rounded-lg text-blue-400/70 hover:text-blue-400 hover:bg-blue-500/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-lg text-blue-600 dark:text-blue-400/70 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 {busyJobId === row.job_id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
               </button>
@@ -219,7 +225,7 @@ export default function DataInjectionDashboardPage() {
                 onClick={() => runAction(row.job_id, 'cancel')}
                 disabled={busyJobId === row.job_id}
                 title="Cancel"
-                className="p-1.5 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/10 disabled:opacity-30 transition-colors"
+                className="p-1.5 rounded-lg text-red-600 dark:text-red-400/70 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-30 transition-colors"
               >
                 {busyJobId === row.job_id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Ban className="w-3.5 h-3.5" />}
               </button>
@@ -231,12 +237,12 @@ export default function DataInjectionDashboardPage() {
   ]
 
   const cards = [
-    { label: 'Total Documents', value: stats?.total_documents ?? 0, icon: <FileText className="w-4 h-4" />, color: 'text-blue-400' },
-    { label: 'Queued', value: stats?.queued ?? 0, icon: <Clock className="w-4 h-4" />, color: 'text-amber-400' },
-    { label: 'Processing', value: stats?.processing ?? 0, icon: <Loader2 className="w-4 h-4" />, color: 'text-blue-400' },
-    { label: 'Completed', value: stats?.completed ?? 0, icon: <CheckCircle className="w-4 h-4" />, color: 'text-emerald-400' },
-    { label: 'Failed', value: stats?.failed ?? 0, icon: <AlertCircle className="w-4 h-4" />, color: 'text-red-400' },
-    { label: 'Cancelled', value: stats?.cancelled ?? 0, icon: <XCircle className="w-4 h-4" />, color: 'text-white/40' },
+    { label: 'Total Documents', value: stats?.total_documents ?? 0, icon: <FileText className="w-4 h-4" />, color: 'text-blue-500 dark:text-blue-400' },
+    { label: 'Queued', value: stats?.queued ?? 0, icon: <Clock className="w-4 h-4" />, color: 'text-amber-500 dark:text-amber-400' },
+    { label: 'Processing', value: stats?.processing ?? 0, icon: <Loader2 className="w-4 h-4" />, color: 'text-blue-500 dark:text-blue-400' },
+    { label: 'Completed', value: stats?.completed ?? 0, icon: <CheckCircle className="w-4 h-4" />, color: 'text-emerald-500 dark:text-emerald-400' },
+    { label: 'Failed', value: stats?.failed ?? 0, icon: <AlertCircle className="w-4 h-4" />, color: 'text-red-500 dark:text-red-400' },
+    { label: 'Cancelled', value: stats?.cancelled ?? 0, icon: <XCircle className="w-4 h-4" />, color: 'text-gray-400 dark:text-white/40' },
   ]
 
   const selectTab = (t: Tab) => {
@@ -256,23 +262,23 @@ export default function DataInjectionDashboardPage() {
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
             {cards.map((s, i) => (
               <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-                className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4">
-                <div className={`${s.color} opacity-70 mb-2`}>{s.icon}</div>
-                <p className="text-xl font-bold text-white">{s.value}</p>
-                <p className="text-[11px] text-white/40">{s.label}</p>
+                className="bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.07] rounded-2xl p-4 shadow-sm">
+                <div className={`${s.color} opacity-80 mb-2`}>{s.icon}</div>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{s.value}</p>
+                <p className="text-[11px] text-gray-500 dark:text-white/40">{s.label}</p>
               </motion.div>
             ))}
           </div>
           {stats?.last_ingestion_at && (
-            <p className="text-[11px] text-white/30 -mt-3">Last completed ingestion: {formatDateTime(stats.last_ingestion_at)}</p>
+            <p className="text-[11px] text-gray-400 dark:text-white/30 -mt-3">Last completed ingestion: {formatDateTime(stats.last_ingestion_at)}</p>
           )}
 
           {actionError && (
-            <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">{actionError}</div>
+            <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl px-3 py-2">{actionError}</div>
           )}
 
           {/* Sub-tabs Navigation */}
-          <div className="flex items-center gap-1 bg-white/[0.03] border border-white/[0.07] rounded-xl p-1 w-fit mb-2 flex-wrap">
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.07] rounded-xl p-1 w-fit mb-2 flex-wrap">
             {[
               { id: 'upload' as Tab, label: 'Upload File', icon: Upload },
               { id: 'jobs' as Tab, label: 'Ingestion Jobs', icon: Briefcase },
@@ -283,7 +289,7 @@ export default function DataInjectionDashboardPage() {
               const Icon = t.icon
               return (
                 <button key={t.id} onClick={() => selectTab(t.id)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === t.id ? 'bg-blue-600 text-white' : 'text-white/40 hover:text-white/70'}`}>
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === t.id ? 'bg-blue-600 text-white' : 'text-gray-500 dark:text-white/40 hover:text-gray-900 dark:hover:text-white/70'}`}>
                   <Icon className="w-3.5 h-3.5" />{t.label}
                 </button>
               )
@@ -294,21 +300,21 @@ export default function DataInjectionDashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-4">
                 <Card>
-                  <h3 className="text-sm font-semibold text-white/70 mb-4">Upload Document</h3>
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-white/70 mb-4">Upload Document</h3>
                   <div className="space-y-4">
                     {/* Domain assignment selection */}
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-semibold text-white/50 uppercase tracking-wider">Assign to Domain (Optional)</label>
-                      <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-white">
-                        <Globe2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                      <label className="text-[11px] font-semibold text-gray-500 dark:text-white/50 uppercase tracking-wider">Assign to Domain (Optional)</label>
+                      <div className="flex items-center gap-2 bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] rounded-xl px-3 py-2 text-gray-900 dark:text-white">
+                        <Globe2 className="w-4 h-4 text-cyan-600 dark:text-cyan-400 flex-shrink-0" />
                         <select
                           value={selectedDomainId}
                           onChange={e => setSelectedDomainId(e.target.value)}
-                          className="w-full bg-transparent border-none text-xs text-white outline-none"
+                          className="w-full bg-transparent border-none text-xs text-gray-900 dark:text-white outline-none"
                         >
-                          <option value="" className="bg-[#0e0e16]">Global / Platform (No Specific Domain)</option>
+                          <option value="" className="bg-white dark:bg-[#0e0e16] text-gray-900 dark:text-white">Global / Platform (No Specific Domain)</option>
                           {domains.map(d => (
-                            <option key={d.id} value={d.id} className="bg-[#0e0e16]">{d.name}</option>
+                            <option key={d.id} value={d.id} className="bg-white dark:bg-[#0e0e16] text-gray-900 dark:text-white">{d.name}</option>
                           ))}
                         </select>
                       </div>
@@ -319,14 +325,14 @@ export default function DataInjectionDashboardPage() {
                       {...getRootProps()}
                       className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all duration-200 ${
                         isDragActive
-                          ? 'border-blue-500 bg-blue-500/5'
-                          : 'border-white/10 hover:border-white/20 hover:bg-white/[0.01]'
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/5'
+                          : 'border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 hover:bg-gray-50 dark:hover:bg-white/[0.01]'
                       }`}
                     >
                       <input {...getInputProps()} />
-                      <Upload className="w-8 h-8 text-blue-400 mx-auto mb-3" />
-                      <p className="text-sm text-white/80 font-medium">Drag & drop files here, or click to browse</p>
-                      <p className="text-xs text-white/30 mt-1.5">Supports PDF, DOCX, HTML, TXT, PPTX (max 50MB)</p>
+                      <Upload className="w-8 h-8 text-blue-500 dark:text-blue-400 mx-auto mb-3" />
+                      <p className="text-sm text-gray-800 dark:text-white/80 font-medium">Drag & drop files here, or click to browse</p>
+                      <p className="text-xs text-gray-400 dark:text-white/30 mt-1.5">Supports PDF, DOCX, HTML, TXT, PPTX (max 50MB)</p>
                     </div>
                   </div>
                 </Card>
@@ -336,27 +342,27 @@ export default function DataInjectionDashboardPage() {
                   {uploads.length > 0 && (
                     <Card>
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-xs font-semibold text-white/70">Uploaded Queue ({uploads.length})</h4>
-                        <button onClick={() => setUploads([])} className="text-[10px] text-white/40 hover:text-white/60">Clear Queue</button>
+                        <h4 className="text-xs font-semibold text-gray-800 dark:text-white/70">Uploaded Queue ({uploads.length})</h4>
+                        <button onClick={() => setUploads([])} className="text-[10px] text-gray-400 dark:text-white/40 hover:text-gray-600 dark:hover:text-white/60">Clear Queue</button>
                       </div>
                       <div className="space-y-2.5">
                         {uploads.map(u => (
-                          <div key={u.id} className="flex items-center gap-3 bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
-                            <FileText className="w-4 h-4 text-blue-400" />
+                          <div key={u.id} className="flex items-center gap-3 bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl p-3">
+                            <FileText className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs text-white/70 truncate">{u.file.name}</p>
+                              <p className="text-xs text-gray-800 dark:text-white/70 truncate">{u.file.name}</p>
                               {u.status === 'uploading' && (
-                                <div className="w-full bg-white/[0.08] h-1 rounded-full mt-1.5 overflow-hidden">
+                                <div className="w-full bg-gray-200 dark:bg-white/[0.08] h-1 rounded-full mt-1.5 overflow-hidden">
                                   <div className="bg-blue-500 h-full rounded-full transition-all duration-150" style={{ width: `${u.progress}%` }} />
                                 </div>
                               )}
-                              {u.status === 'queued' && <p className="text-[10px] text-amber-400 mt-1">Queued (Job ID: {u.jobId})</p>}
-                              {u.status === 'error' && <p className="text-[10px] text-red-400 mt-1">{u.error}</p>}
+                              {u.status === 'queued' && <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1">Queued (Job ID: {u.jobId})</p>}
+                              {u.status === 'error' && <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">{u.error}</p>}
                             </div>
                             <div className="flex-shrink-0">
-                              {u.status === 'done' && <CheckCircle className="w-4 h-4 text-emerald-400" />}
-                              {u.status === 'error' && <XCircle className="w-4 h-4 text-red-400" />}
-                              {u.status === 'uploading' && <span className="text-[10px] font-mono text-white/40">{u.progress}%</span>}
+                              {u.status === 'done' && <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />}
+                              {u.status === 'error' && <XCircle className="w-4 h-4 text-red-500 dark:text-red-400" />}
+                              {u.status === 'uploading' && <span className="text-[10px] font-mono text-gray-400 dark:text-white/40">{u.progress}%</span>}
                             </div>
                           </div>
                         ))}
@@ -369,13 +375,13 @@ export default function DataInjectionDashboardPage() {
               {/* Ingestion Pipeline Reference */}
               <div className="lg:col-span-1">
                 <Card>
-                  <h3 className="text-sm font-semibold text-white/70 mb-3">Ingestion Pipeline</h3>
-                  <p className="text-xs text-white/40 mb-4">Every document goes through these stages sequentially:</p>
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-white/70 mb-3">Ingestion Pipeline</h3>
+                  <p className="text-xs text-gray-400 dark:text-white/40 mb-4">Every document goes through these stages sequentially:</p>
                   <div className="space-y-3">
                     {INGESTION_PIPELINE_STAGES.map((stage, i) => (
                       <div key={stage} className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-[10px] font-mono text-white/40 flex-shrink-0">{i + 1}</span>
-                        <span className="text-xs text-white/70">{stageLabels[stage] ?? stage}</span>
+                        <span className="w-5 h-5 rounded-full bg-gray-100 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] flex items-center justify-center text-[10px] font-mono text-gray-500 dark:text-white/40 flex-shrink-0">{i + 1}</span>
+                        <span className="text-xs text-gray-700 dark:text-white/70">{stageLabels[stage] ?? stage}</span>
                       </div>
                     ))}
                   </div>
@@ -385,17 +391,17 @@ export default function DataInjectionDashboardPage() {
           ) : (
             <Card>
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <h3 className="text-sm font-semibold text-white/70">
+                <h3 className="text-sm font-semibold text-gray-800 dark:text-white/70">
                   {tab === 'jobs' && 'Ingestion Jobs'}
                   {tab === 'status' && 'Processing Status (Active)'}
                   {tab === 'failed' && 'Failed Ingestion Jobs'}
                   {tab === 'retry' && 'Failed Jobs Available for Retry'}
                 </h3>
                 {tab === 'jobs' && (
-                  <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.08] rounded-xl p-1">
+                  <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] rounded-xl p-1">
                     {FILTERS.map(f => (
                       <button key={f.id} onClick={() => setFilter(f.id)}
-                        className={`px-3 py-1 rounded-lg text-[11px] font-medium transition-all ${filter === f.id ? 'bg-blue-600 text-white' : 'text-white/40 hover:text-white/70'}`}>
+                        className={`px-3 py-1 rounded-lg text-[11px] font-medium transition-all ${filter === f.id ? 'bg-blue-600 text-white' : 'text-gray-500 dark:text-white/40 hover:text-gray-800 dark:hover:text-white/70'}`}>
                         {f.label}
                       </button>
                     ))}
@@ -403,9 +409,9 @@ export default function DataInjectionDashboardPage() {
                 )}
               </div>
               {isError ? (
-                <div className="text-center py-8 text-sm text-red-400">
+                <div className="text-center py-8 text-sm text-red-600 dark:text-red-400">
                   {error instanceof ApiError ? error.message : 'Failed to load ingestion jobs'}
-                  <button onClick={() => refetch()} className="block mx-auto mt-2 text-xs text-blue-400 hover:underline">Retry</button>
+                  <button onClick={() => refetch()} className="block mx-auto mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline">Retry</button>
                 </div>
               ) : (
                 <DataTable
@@ -434,40 +440,40 @@ function JobDetail({ job }: { job: IngestionJobOut }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs text-white/40">Job</p>
-          <p className="text-xs font-mono text-white/70">{job.job_id}</p>
+          <p className="text-xs text-gray-400 dark:text-white/40">Job</p>
+          <p className="text-xs font-mono text-gray-700 dark:text-white/70">{job.job_id}</p>
         </div>
         <StatusBadge status={job.status} size="md" />
       </div>
 
       {job.document_id && (
         <div>
-          <p className="text-xs text-white/40">Document</p>
-          <p className="text-xs font-mono text-white/70">{job.document_id}{job.action ? ` (${job.action})` : ''}</p>
+          <p className="text-xs text-gray-400 dark:text-white/40">Document</p>
+          <p className="text-xs font-mono text-gray-700 dark:text-white/70">{job.document_id}{job.action ? ` (${job.action})` : ''}</p>
         </div>
       )}
 
       {job.retry_of_job_id && (
-        <p className="text-[11px] text-white/40">Retry #{job.retry_count} of <span className="font-mono">{job.retry_of_job_id}</span></p>
+        <p className="text-[11px] text-gray-400 dark:text-white/40">Retry #{job.retry_count} of <span className="font-mono">{job.retry_of_job_id}</span></p>
       )}
 
       {job.error_message && (
-        <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">{job.error_message}</div>
+        <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl px-3 py-2">{job.error_message}</div>
       )}
 
       <div>
-        <p className="text-[11px] font-semibold text-white/50 uppercase tracking-wider mb-2">Pipeline Progress</p>
+        <p className="text-[11px] font-semibold text-gray-500 dark:text-white/50 uppercase tracking-wider mb-2">Pipeline Progress</p>
         <div className="space-y-1.5">
           {INGESTION_PIPELINE_STAGES.map(stage => {
             const entry = byStage.get(stage)
             const status = entry?.status ?? 'pending'
             const dot = status === 'completed' ? 'bg-emerald-500' : status === 'failed' ? 'bg-red-500'
-              : status === 'running' ? 'bg-blue-500 animate-pulse' : status === 'skipped' ? 'bg-gray-500' : 'bg-white/10'
+              : status === 'running' ? 'bg-blue-500 animate-pulse' : status === 'skipped' ? 'bg-gray-400' : 'bg-gray-300 dark:bg-white/10'
             return (
               <div key={stage} className="flex items-center gap-2.5">
                 <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dot}`} />
-                <span className="text-xs text-white/60 flex-1">{stageLabels[stage] ?? stage}</span>
-                <span className="text-[10px] text-white/30 capitalize">{status}</span>
+                <span className="text-xs text-gray-700 dark:text-white/60 flex-1">{stageLabels[stage] ?? stage}</span>
+                <span className="text-[10px] text-gray-400 dark:text-white/30 capitalize">{status}</span>
               </div>
             )
           })}
@@ -475,7 +481,7 @@ function JobDetail({ job }: { job: IngestionJobOut }) {
       </div>
 
       <div>
-        <p className="text-[11px] text-white/30">Created {formatDateTime(job.created_at)}{job.completed_at ? ` · Completed ${formatDateTime(job.completed_at)}` : ''}</p>
+        <p className="text-[11px] text-gray-400 dark:text-white/30">Created {formatDateTime(job.created_at)}{job.completed_at ? ` · Completed ${formatDateTime(job.completed_at)}` : ''}</p>
       </div>
     </div>
   )

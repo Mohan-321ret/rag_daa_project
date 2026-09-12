@@ -41,6 +41,22 @@ class GeneratedAnswer:
     grounding: GroundingResult
 
 
+def _clean_reasoning_tags(text: str) -> str:
+    """Strip out internal reasoning blocks like <think>...</think> produced by reasoning models (Qwen, DeepSeek)."""
+    import re
+    if not text:
+        return ""
+    if "<think>" in text:
+        cleaned = re.sub(r"<think>.*?(?:</think>|$)", "", text, flags=re.DOTALL).strip()
+        if cleaned:
+            return cleaned
+        # If the model placed its entire answer inside <think>...</think> (or was cut off), return the inner text
+        inside = re.sub(r"</?think>", "", text, flags=re.DOTALL).strip()
+        if inside:
+            return inside
+    return text.strip()
+
+
 async def generate_answer(
     prompt: BuiltPrompt,
     context_chunks: List[dict],
@@ -93,6 +109,7 @@ async def generate_answer(
         )
         if provider != "ollama":
             try:
+                from app.core.config import settings
                 from app.services.llm_service import build_llm
                 fallback_model = resolve_ollama_model("llama3")
                 fallback_llm = build_llm(
@@ -112,15 +129,6 @@ async def generate_answer(
     answer_text = _clean_reasoning_tags(answer_text)
     grounding = extract_citations(answer_text, context_chunks)
 
-
-def _clean_reasoning_tags(text: str) -> str:
-    """Strip out internal reasoning blocks like <think>...</think> produced by reasoning models (Qwen, DeepSeek)."""
-    import re
-    if "<think>" in text:
-        cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
-        return cleaned if cleaned else text
-    return text
-
     logger.info(
         "[EnterpriseLLM] ✅ provider=%s model=%s grounded=%s citations=%d declined=%s",
         provider, resolved_model, grounding.is_grounded,
@@ -134,3 +142,4 @@ def _clean_reasoning_tags(text: str) -> str:
         model_available=model_available,
         grounding=grounding,
     )
+

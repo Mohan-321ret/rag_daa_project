@@ -67,15 +67,15 @@ const STATIC_CATALOG = [
 ]
 
 const CAT_COLORS: Record<string, string> = {
-  'Platform Management': 'text-violet-400 bg-violet-500/10 border-violet-500/20',
-  'User Management': 'text-blue-400 bg-blue-500/10 border-blue-500/20',
-  'Document Management': 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
-  'Data Injection': 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-  'Chunk Management': 'text-teal-400 bg-teal-500/10 border-teal-500/20',
-  'LLM Management': 'text-purple-400 bg-purple-500/10 border-purple-500/20',
-  'Query Management': 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-  'Ticket Management': 'text-rose-400 bg-rose-500/10 border-rose-500/20',
-  'Analytics': 'text-pink-400 bg-pink-500/10 border-pink-500/20',
+  'Platform Management': 'text-violet-700 bg-violet-50 border-violet-200 dark:text-violet-400 dark:bg-violet-500/10 dark:border-violet-500/20',
+  'User Management': 'text-blue-700 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20',
+  'Document Management': 'text-cyan-700 bg-cyan-50 border-cyan-200 dark:text-cyan-400 dark:bg-cyan-500/10 dark:border-cyan-500/20',
+  'Data Injection': 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-500/10 dark:border-emerald-500/20',
+  'Chunk Management': 'text-teal-700 bg-teal-50 border-teal-200 dark:text-teal-400 dark:bg-teal-500/10 dark:border-teal-500/20',
+  'LLM Management': 'text-purple-700 bg-purple-50 border-purple-200 dark:text-purple-400 dark:bg-purple-500/10 dark:border-purple-500/20',
+  'Query Management': 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-500/10 dark:border-amber-500/20',
+  'Ticket Management': 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-500/10 dark:border-rose-500/20',
+  'Analytics': 'text-pink-700 bg-pink-50 border-pink-200 dark:text-pink-400 dark:bg-pink-500/10 dark:border-pink-500/20',
 }
 
 export default function PermissionsPage() {
@@ -104,47 +104,47 @@ export default function PermissionsPage() {
         title="Permission Catalog"
         description="All fine-grained permissions in the system, organized by functional category."
         breadcrumbs={[{ label: 'Admin Panel', href: '/admin/users' }, { label: 'Permissions' }]}
-        badge={<span className="px-2 py-0.5 rounded-full text-[10px] bg-violet-500/15 text-violet-300 border border-violet-500/20">{totalPerms} permissions</span>}
+        badge={<span className="px-2 py-0.5 rounded-full text-[10px] bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-500/15 dark:text-violet-300 dark:border-violet-500/20">{totalPerms} permissions</span>}
       >
         {/* Search */}
         <div className="relative mb-5">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-white/30" />
           <input
             value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search permissions..."
-            className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.06]"
+            className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/25 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 transition-all"
           />
         </div>
 
         <div className="space-y-2">
           {filtered.map(cat => (
-            <div key={cat.category} className="bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden">
+            <div key={cat.category} className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl overflow-hidden shadow-sm dark:shadow-none">
               <button
                 onClick={() => toggle(cat.category)}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/[0.03] transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors"
               >
                 <div className="flex items-center gap-2.5">
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${CAT_COLORS[cat.category] ?? 'text-white/50 bg-white/[0.05] border-white/10'}`}>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${CAT_COLORS[cat.category] ?? 'text-gray-600 bg-gray-100 border-gray-200 dark:text-white/50 dark:bg-white/[0.05] dark:border-white/10'}`}>
                     {cat.category}
                   </span>
-                  <span className="text-xs text-white/30">{cat.permissions.length} permissions</span>
+                  <span className="text-xs text-adaptive-muted">{cat.permissions.length} permissions</span>
                 </div>
                 <motion.div animate={{ rotate: openCats.has(cat.category) ? 180 : 0 }} transition={{ duration: 0.15 }}>
-                  <ChevronDown className="w-4 h-4 text-white/30" />
+                  <ChevronDown className="w-4 h-4 text-gray-400 dark:text-white/30" />
                 </motion.div>
               </button>
 
               {openCats.has(cat.category) && (
                 <div className="px-4 pb-3 grid grid-cols-1 gap-1.5">
                   {cat.permissions.map(p => (
-                    <div key={p.key} className="flex items-start gap-3 p-3 bg-white/[0.02] rounded-lg border border-white/[0.04]">
-                      <KeyRound className="w-3.5 h-3.5 text-white/30 mt-0.5 flex-shrink-0" />
+                    <div key={p.key} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-white/[0.02] rounded-lg border border-gray-200 dark:border-white/[0.04]">
+                      <KeyRound className="w-3.5 h-3.5 text-gray-400 dark:text-white/30 mt-0.5 flex-shrink-0" />
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-xs font-medium text-white/80">{p.label}</p>
-                          <code className="text-[10px] text-white/25 font-mono">{p.key}</code>
+                          <p className="text-xs font-medium text-adaptive-primary">{p.label}</p>
+                          <code className="text-[10px] text-adaptive-muted font-mono">{p.key}</code>
                         </div>
-                        <p className="text-[11px] text-white/40 mt-0.5">{p.description}</p>
+                        <p className="text-[11px] text-adaptive-secondary mt-0.5">{p.description}</p>
                       </div>
                     </div>
                   ))}

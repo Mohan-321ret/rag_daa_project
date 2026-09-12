@@ -276,24 +276,24 @@ export default function EvolutionPage() {
                           { label: 'Chunks Removed', value: selected.chunks_removed },
                           { label: 'Chunks Unchanged', value: selected.chunks_unchanged },
                         ].map(s => (
-                          <div key={s.label} className="bg-white/[0.03] rounded-xl p-3 text-center">
-                            <p className="text-lg font-bold text-white">{s.value}</p>
-                            <p className="text-[10px] text-white/30">{s.label}</p>
+                          <div key={s.label} className="bg-gray-50 border border-gray-100 dark:bg-white/[0.03] dark:border-transparent rounded-xl p-3 text-center">
+                            <p className="text-lg font-bold text-gray-900 dark:text-white">{s.value}</p>
+                            <p className="text-[10px] text-gray-500 dark:text-white/30">{s.label}</p>
                           </div>
                         ))}
                       </div>
                       {(selected.text_similarity != null || selected.embedding_similarity != null) && (
-                        <div className="mt-3 flex items-center gap-4 text-xs text-white/50">
-                          {selected.text_similarity != null && <span>Text similarity: <strong className="text-white/80">{(selected.text_similarity * 100).toFixed(1)}%</strong></span>}
-                          {selected.embedding_similarity != null && <span>Embedding similarity: <strong className="text-white/80">{(selected.embedding_similarity * 100).toFixed(1)}%</strong></span>}
+                        <div className="mt-3 flex items-center gap-4 text-xs text-gray-600 dark:text-white/50">
+                          {selected.text_similarity != null && <span>Text similarity: <strong className="text-gray-900 dark:text-white/80">{(selected.text_similarity * 100).toFixed(1)}%</strong></span>}
+                          {selected.embedding_similarity != null && <span>Embedding similarity: <strong className="text-gray-900 dark:text-white/80">{(selected.embedding_similarity * 100).toFixed(1)}%</strong></span>}
                         </div>
                       )}
                     </Card>
 
                     {selected.unified_diff && (
                       <Card>
-                        <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Unified Diff</h3>
-                        <div className="bg-[#0a0a14] rounded-xl p-4 font-mono text-[11px] text-white/60 leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
+                        <h3 className="text-xs font-semibold text-gray-500 dark:text-white/50 uppercase tracking-wider mb-3">Unified Diff</h3>
+                        <div className="bg-slate-100 border border-slate-200 text-slate-800 dark:bg-[#0a0a14] dark:border-white/[0.06] dark:text-white/60 rounded-xl p-4 font-mono text-[11px] leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
                           {selected.unified_diff}
                         </div>
                       </Card>
@@ -304,13 +304,13 @@ export default function EvolutionPage() {
                       return (
                         <Card>
                           <div className="flex items-center gap-2 mb-4">
-                            <AlertTriangle className="w-4 h-4 text-amber-400" />
-                            <h3 className="text-xs font-semibold text-white/70">Detected Conflicts</h3>
-                            <span className="ml-auto text-[10px] bg-amber-400/10 text-amber-400 px-2 py-0.5 rounded-full">{conflicts.length}</span>
+                            <AlertTriangle className="w-4 h-4 text-amber-500" />
+                            <h3 className="text-xs font-semibold text-gray-800 dark:text-white/70">Detected Conflicts</h3>
+                            <span className="ml-auto text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-400/10 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">{conflicts.length}</span>
                           </div>
                           <div className="space-y-2">
                             {conflicts.map((c, i) => (
-                              <pre key={i} className="p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-[11px] text-white/60 overflow-x-auto">{JSON.stringify(c, null, 2)}</pre>
+                              <pre key={i} className="p-3 rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-500/20 dark:bg-amber-500/5 text-[11px] text-gray-700 dark:text-white/60 overflow-x-auto font-mono">{JSON.stringify(c, null, 2)}</pre>
                             ))}
                           </div>
                         </Card>

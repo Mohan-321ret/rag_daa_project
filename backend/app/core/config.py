@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List
+from typing import List, Union
 
 
 class Settings(BaseSettings):
@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     temp_upload_dir: str = "./data/tmp_uploads"
     doc_id_prefix: str = "DOC"
     # Comma-separated list of allowed extensions
-    allowed_extensions: str = ".pdf,.docx,.txt,.html,.pptx"
+    allowed_extensions: str = ".pdf,.docx,.doc,.txt,.html,.htm,.pptx,.ppt,.csv,.xlsx,.xls"
 
     # ── Chunking (Module 2 – Phase 3) ─────────────────────────────────────────
     chunk_size: int = 1000          # target characters per chunk
@@ -179,6 +179,9 @@ class Settings(BaseSettings):
     # Default aggregation window for GET /feedback/metrics when not specified.
     metrics_default_window_days: int = 30
 
+    # Modular confidence score threshold
+    confidence_threshold: float = 0.70
+
     # ── Automatic Ticketing (Module 1 – Phase 10) ──────────────────────────────
     # When a /rag/query answer's verification confidence_score falls below the
     # threshold, a review ticket is raised automatically. The threshold is
@@ -217,7 +220,7 @@ class Settings(BaseSettings):
     # Includes Vite's default dev port (5173) alongside the Docker Compose
     # frontend port (3000) so the Authentication module's login flow works
     # against either `npm run dev` or the containerized frontend out of the box.
-    allowed_origins: str = (
+    allowed_origins: Union[List[str], str] = (
         "http://localhost:3000,http://127.0.0.1:3000,"
         "http://localhost:5173,http://127.0.0.1:5173"
     )
@@ -234,7 +237,9 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins(self) -> List[str]:
-        return [o.strip() for o in self.allowed_origins.split(",")]
+        if isinstance(self.allowed_origins, list):
+            return self.allowed_origins
+        return [o.strip() for o in self.allowed_origins.split(",") if o.strip()]
 
 
 settings = Settings()

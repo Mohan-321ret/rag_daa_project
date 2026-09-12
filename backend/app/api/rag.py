@@ -251,6 +251,7 @@ async def rag_query(
             if grounding else []
         ),
         verification=verification_result_to_dict(verification) if verification else None,
+        confidence_score=result.get("confidence_score"),
         ticket=result.get("ticket"),
         latency_ms=latency_ms * 1000,
     )

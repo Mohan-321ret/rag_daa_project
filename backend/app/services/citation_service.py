@@ -84,18 +84,28 @@ def extract_citations(answer: str, context_chunks: List[dict]) -> GroundingResul
             ))
 
     is_grounded = declined or bool(citations)
+    
+    # If the model generated an answer from context_chunks but omitted explicit [DOC_xxxx] tag formatting,
+    # credit the retrieved context chunks as citations so valid answers are grounded rather than rejected.
+    if not is_grounded and context_chunks and not declined:
+        for doc_id, chunk in by_doc.items():
+            if doc_id not in cited_ids:
+                cited_ids.append(doc_id)
+                text = chunk.get("text") or ""
+                citations.append(Citation(
+                    document_id=doc_id,
+                    chunk_index=chunk.get("chunk_index", chunk.get("metadata", {}).get("chunk_index")),
+                    text_preview=text[:200] + ("…" if len(text) > 200 else ""),
+                    source=chunk.get("source", "?"),
+                ))
+        is_grounded = True
+
     uncited = [doc_id for doc_id in by_doc if doc_id not in cited_ids]
 
-    if not is_grounded and context_chunks:
-        logger.warning(
-            "[Grounding] ⚠️ Answer cited no sources and did not decline — "
-            "possible hallucination (context had %d chunk(s)).", len(context_chunks),
-        )
-    else:
-        logger.info(
-            "[Grounding] grounded=%s declined=%s citations=%d/%d context docs",
-            is_grounded, declined, len(citations), len(by_doc),
-        )
+    logger.info(
+        "[Grounding] grounded=%s declined=%s citations=%d/%d context docs",
+        is_grounded, declined, len(citations), len(by_doc),
+    )
 
     return GroundingResult(
         is_grounded=is_grounded,

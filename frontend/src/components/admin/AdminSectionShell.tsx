@@ -44,17 +44,17 @@ export function AdminSectionShell({
       className="space-y-6"
     >
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 text-[11px] text-white/35">
-        <Link href="/dashboard" className="hover:text-white/60 transition-colors flex items-center gap-1">
+      <nav className="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-white/35">
+        <Link href="/dashboard" className="hover:text-gray-900 dark:hover:text-white/60 transition-colors flex items-center gap-1">
           <LayoutDashboard className="w-3 h-3" />
         </Link>
         {crumbs.map((crumb, i) => (
           <span key={i} className="flex items-center gap-1.5">
-            <ChevronRight className="w-3 h-3 text-white/20" />
+            <ChevronRight className="w-3 h-3 text-gray-400 dark:text-white/20" />
             {crumb.href ? (
-              <Link href={crumb.href} className="hover:text-white/60 transition-colors">{crumb.label}</Link>
+              <Link href={crumb.href} className="hover:text-gray-900 dark:hover:text-white/60 transition-colors">{crumb.label}</Link>
             ) : (
-              <span className="text-white/60 font-medium">{crumb.label}</span>
+              <span className="text-gray-700 dark:text-white/60 font-medium">{crumb.label}</span>
             )}
           </span>
         ))}
@@ -65,11 +65,11 @@ export function AdminSectionShell({
         <div className="flex items-center gap-3">
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-xl font-bold text-white tracking-tight">{title}</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">{title}</h1>
               {badge}
             </div>
             {description && (
-              <p className="text-sm text-white/40 mt-0.5">{description}</p>
+              <p className="text-sm text-gray-500 dark:text-white/40 mt-0.5">{description}</p>
             )}
           </div>
         </div>

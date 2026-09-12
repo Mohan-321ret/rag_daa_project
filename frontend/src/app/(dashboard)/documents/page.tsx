@@ -34,18 +34,18 @@ export default function DocumentsPage() {
       <PageHeader title="Document Details" description="Complete document metadata, versions, and extracted content">
         <div className="relative">
           <button onClick={() => setPickerOpen(!pickerOpen)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-white/60 hover:text-white/90 transition-all">
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 text-xs text-gray-700 hover:text-gray-900 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white/60 dark:hover:text-white/90 transition-all">
             {documentId ?? 'Select a document'} <ChevronDown className="w-3.5 h-3.5" />
           </button>
           {pickerOpen && (
-            <div className="absolute right-0 top-11 w-72 max-h-80 overflow-y-auto bg-[#12121f] border border-white/10 rounded-2xl shadow-2xl z-50">
+            <div className="absolute right-0 top-11 w-72 max-h-80 overflow-y-auto bg-white dark:bg-[#12121f] border border-gray-200 dark:border-white/10 rounded-2xl shadow-xl z-50">
               {(list?.documents ?? []).map(d => (
                 <button key={d.document_id} onClick={() => { router.push(`/documents?id=${d.document_id}`); setPickerOpen(false) }}
-                  className="w-full text-left px-4 py-2.5 text-xs text-white/60 hover:text-white hover:bg-white/[0.05] transition-all truncate">
+                  className="w-full text-left px-4 py-2.5 text-xs text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-all truncate">
                   {d.original_filename}
                 </button>
               ))}
-              {(list?.documents?.length ?? 0) === 0 && <p className="px-4 py-3 text-xs text-white/30">No documents uploaded yet</p>}
+              {(list?.documents?.length ?? 0) === 0 && <p className="px-4 py-3 text-xs text-gray-400 dark:text-white/30">No documents uploaded yet</p>}
             </div>
           )}
         </div>
@@ -59,12 +59,12 @@ export default function DocumentsPage() {
 
       {documentId && isError && (
         <Card>
-          <p className="text-sm text-red-400 text-center py-6">{error instanceof ApiError ? error.message : 'Failed to load document'}</p>
+          <p className="text-sm text-red-500 dark:text-red-400 text-center py-6">{error instanceof ApiError ? error.message : 'Failed to load document'}</p>
         </Card>
       )}
 
       {documentId && isLoading && (
-        <Card><div className="h-40 animate-pulse bg-white/[0.03] rounded-xl" /></Card>
+        <Card><div className="h-40 animate-pulse bg-gray-100 dark:bg-white/[0.03] rounded-xl" /></Card>
       )}
 
       {doc && (
@@ -74,8 +74,8 @@ export default function DocumentsPage() {
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-2xl">📄</div>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-white truncate">{doc.filename}</p>
-                <p className="text-xs text-white/40">{doc.document_id}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{doc.filename}</p>
+                <p className="text-xs text-gray-500 dark:text-white/40">{doc.document_id}</p>
               </div>
             </div>
             <div className="space-y-3">
@@ -90,47 +90,47 @@ export default function DocumentsPage() {
                 { label: 'OCR', value: doc.ocr_used ? 'Used' : 'Not required' },
                 { label: 'Uploaded', value: formatDateTime(doc.upload_date) },
               ].map(item => (
-                <div key={item.label} className="flex items-center justify-between py-1.5 border-b border-white/[0.04]">
-                  <span className="text-[11px] text-white/40">{item.label}</span>
-                  <span className="text-xs text-white/70 font-medium">{item.value}</span>
+                <div key={item.label} className="flex items-center justify-between py-1.5 border-b border-gray-100 dark:border-white/[0.04]">
+                  <span className="text-[11px] text-gray-500 dark:text-white/40">{item.label}</span>
+                  <span className="text-xs text-gray-800 dark:text-white/70 font-medium">{item.value}</span>
                 </div>
               ))}
             </div>
             <div className="mt-4">
-              <p className="text-[11px] text-white/40 mb-2">Permissions</p>
-              <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full">{doc.permissions}</span>
+              <p className="text-[11px] text-gray-500 dark:text-white/40 mb-2">Permissions</p>
+              <span className="text-[10px] bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full font-medium">{doc.permissions}</span>
             </div>
           </Card>
 
           {/* Content */}
           <div className="lg:col-span-2 space-y-4">
             <Card>
-              <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Version History</h3>
+              <h3 className="text-xs font-semibold text-gray-500 dark:text-white/50 uppercase tracking-wider mb-3">Version History</h3>
               {versions && versions.versions.length > 0 ? (
                 <div className="space-y-2">
                   {versions.versions.map((v, i) => (
                     <motion.div key={v.document_id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                      className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                      <div className={`w-2.5 h-2.5 rounded-full mt-1 flex-shrink-0 ${v.is_latest ? 'bg-blue-400' : 'bg-gray-500'}`} />
+                      className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 border border-gray-200 dark:bg-white/[0.02] dark:border-white/[0.04]">
+                      <div className={`w-2.5 h-2.5 rounded-full mt-1 flex-shrink-0 ${v.is_latest ? 'bg-blue-500' : 'bg-gray-400'}`} />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-white/80">v{v.version}</span>
-                          <span className="text-[10px] text-white/30">{formatDateTime(v.upload_date)}</span>
+                          <span className="text-xs font-bold text-gray-900 dark:text-white/80">v{v.version}</span>
+                          <span className="text-[10px] text-gray-400 dark:text-white/30">{formatDateTime(v.upload_date)}</span>
                         </div>
-                        <p className="text-[11px] text-white/50 mt-0.5">{v.word_count.toLocaleString()} words · {v.document_id}</p>
+                        <p className="text-[11px] text-gray-500 dark:text-white/50 mt-0.5">{v.word_count.toLocaleString()} words · {v.document_id}</p>
                       </div>
                       <StatusBadge status={v.is_latest ? 'current' : 'stable'} />
                     </motion.div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-white/30">Only one version on record.</p>
+                <p className="text-xs text-gray-400 dark:text-white/30">Only one version on record.</p>
               )}
             </Card>
 
             <Card>
-              <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Extracted Text Preview</h3>
-              <div className="bg-[#0a0a14] rounded-xl p-4 text-xs text-white/60 leading-relaxed max-h-64 overflow-y-auto font-mono whitespace-pre-wrap">
+              <h3 className="text-xs font-semibold text-gray-500 dark:text-white/50 uppercase tracking-wider mb-3">Extracted Text Preview</h3>
+              <div className="bg-slate-100 border border-slate-200 text-slate-800 dark:bg-[#0a0a14] dark:border-white/[0.06] dark:text-white/60 rounded-xl p-4 text-xs leading-relaxed max-h-64 overflow-y-auto font-mono whitespace-pre-wrap">
                 {doc.extracted_text_preview || 'No preview available.'}
               </div>
             </Card>

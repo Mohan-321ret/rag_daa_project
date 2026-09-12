@@ -35,7 +35,7 @@ export default function AdminRootPage() {
   }, [role, router])
 
   return (
-    <div className="flex items-center justify-center py-20 text-white/30 text-sm">
+    <div className="flex items-center justify-center py-20 text-gray-400 dark:text-white/30 text-sm">
       Redirecting…
     </div>
   )

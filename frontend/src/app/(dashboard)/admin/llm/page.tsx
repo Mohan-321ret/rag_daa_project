@@ -135,38 +135,38 @@ export default function LLMManagementPage() {
   const columns = [
     { key: 'name', label: 'Config', render: (_: unknown, row: ProviderRow) => (
       <div className="flex items-center gap-2">
-        {row.is_current && <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 flex-shrink-0" />}
+        {row.is_current && <Star className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 fill-amber-500 dark:fill-amber-400 flex-shrink-0" />}
         <div>
-          <p className="text-xs font-medium text-white/80">{row.name}</p>
-          <p className="text-[10px] text-white/30">{row.provider} · {row.model}</p>
+          <p className="text-xs font-medium text-adaptive-primary">{row.name}</p>
+          <p className="text-[10px] text-adaptive-muted">{row.provider} · {row.model}</p>
         </div>
       </div>
     )},
-    { key: 'endpoint', label: 'Endpoint', render: (v: unknown) => <span className="text-[11px] font-mono text-white/40">{v ? String(v) : '—'}</span> },
+    { key: 'endpoint', label: 'Endpoint', render: (v: unknown) => <span className="text-[11px] font-mono text-adaptive-secondary">{v ? String(v) : '—'}</span> },
     { key: 'api_key_env_var', label: 'API Key', render: (_: unknown, row: ProviderRow) => (
       row.api_key_env_var ? (
-        <span className="flex items-center gap-1.5 text-[11px] font-mono text-white/50">
+        <span className="flex items-center gap-1.5 text-[11px] font-mono text-adaptive-secondary">
           <KeyRound className="w-3 h-3" /> {row.api_key_env_var}
           {row.api_key_configured
-            ? <span title="Configured"><CheckCircle className="w-3 h-3 text-emerald-400" /></span>
-            : <span title="Not set on this server"><XCircle className="w-3 h-3 text-red-400" /></span>}
+            ? <span title="Configured"><CheckCircle className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /></span>
+            : <span title="Not set on this server"><XCircle className="w-3 h-3 text-red-500 dark:text-red-400" /></span>}
         </span>
-      ) : <span className="text-[11px] text-white/25">Not required</span>
+      ) : <span className="text-[11px] text-adaptive-muted">Not required</span>
     )},
-    { key: 'temperature', label: 'Temp', render: (v: unknown) => <span className="text-xs text-white/60">{Number(v).toFixed(2)}</span> },
-    { key: 'max_tokens', label: 'Max Tokens', render: (v: unknown) => <span className="text-xs text-white/60">{v ? String(v) : '—'}</span> },
-    { key: 'context_window', label: 'Context', render: (v: unknown) => <span className="text-xs text-white/60">{v ? String(v) : '—'}</span> },
+    { key: 'temperature', label: 'Temp', render: (v: unknown) => <span className="text-xs text-adaptive-secondary">{Number(v).toFixed(2)}</span> },
+    { key: 'max_tokens', label: 'Max Tokens', render: (v: unknown) => <span className="text-xs text-adaptive-secondary">{v ? String(v) : '—'}</span> },
+    { key: 'context_window', label: 'Context', render: (v: unknown) => <span className="text-xs text-adaptive-secondary">{v ? String(v) : '—'}</span> },
     { key: 'status', label: 'Status', render: (v: unknown) => <StatusBadge status={String(v)} /> },
     { key: 'actions', label: '', render: (_: unknown, row: ProviderRow) => (
       <div className="flex items-center justify-end gap-1.5" onClick={e => e.stopPropagation()}>
-        <button onClick={() => openEdit(row)} title="Configure" className="p-1.5 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-colors">
+        <button onClick={() => openEdit(row)} title="Configure" className="p-1.5 rounded-lg text-gray-400 dark:text-white/30 hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors">
           <Pencil className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => runTest(row.id)}
           disabled={busyId === `test-${row.id}`}
           title="Test connection"
-          className="p-1.5 rounded-lg text-blue-400/70 hover:text-blue-400 hover:bg-blue-500/10 disabled:opacity-30 transition-colors"
+          className="p-1.5 rounded-lg text-blue-600/70 dark:text-blue-400/70 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 disabled:opacity-30 transition-colors"
         >
           {busyId === `test-${row.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plug className="w-3.5 h-3.5" />}
         </button>
@@ -174,7 +174,7 @@ export default function LLMManagementPage() {
           <button
             onClick={() => runAction(row.id, 'activate', () => llmConfigApi.activate(row.id))}
             disabled={busyId === `activate-${row.id}`}
-            title="Activate" className="p-1.5 rounded-lg text-emerald-400/70 hover:text-emerald-400 hover:bg-emerald-500/10 disabled:opacity-30 transition-colors"
+            title="Activate" className="p-1.5 rounded-lg text-emerald-600/70 dark:text-emerald-400/70 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 disabled:opacity-30 transition-colors"
           >
             {busyId === `activate-${row.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
           </button>
@@ -183,7 +183,7 @@ export default function LLMManagementPage() {
             onClick={() => runAction(row.id, 'deactivate', () => llmConfigApi.deactivate(row.id))}
             disabled={busyId === `deactivate-${row.id}` || row.is_current}
             title={row.is_current ? 'Switch active model elsewhere first' : 'Deactivate'}
-            className="p-1.5 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="p-1.5 rounded-lg text-red-500/70 dark:text-red-400/70 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             {busyId === `deactivate-${row.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
           </button>
@@ -212,16 +212,16 @@ export default function LLMManagementPage() {
       >
         <div className="space-y-6">
           {actionError && (
-            <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">{actionError}</div>
+            <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl px-3 py-2">{actionError}</div>
           )}
           {testResult && (
-            <div className={`text-xs rounded-xl px-3 py-2 border ${testResult.success ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'}`}>
+            <div className={`text-xs rounded-xl px-3 py-2 border ${testResult.success ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-500/10 dark:border-emerald-500/20' : 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-500/10 dark:border-red-500/20'}`}>
               {testResult.success ? '✓ Connection success!' : '✗ Connection failed:'} {testResult.message}{testResult.latencyMs != null && ` (${Math.round(testResult.latencyMs)}ms)`}
             </div>
           )}
 
           {/* Sub-tabs Navigation */}
-          <div className="flex items-center gap-1 bg-white/[0.03] border border-white/[0.07] rounded-xl p-1 w-fit mb-2 flex-wrap">
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.07] rounded-xl p-1 w-fit mb-2 flex-wrap">
             {[
               { id: 'providers' as Tab, label: 'Providers', icon: Plug },
               { id: 'models' as Tab, label: 'Models Catalog', icon: Cpu },
@@ -232,7 +232,7 @@ export default function LLMManagementPage() {
               const Icon = t.icon
               return (
                 <button key={t.id} onClick={() => selectTab(t.id)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === t.id ? 'bg-blue-600 text-white' : 'text-white/40 hover:text-white/70'}`}>
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === t.id ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 dark:text-white/40 hover:text-gray-900 dark:hover:text-white/70'}`}>
                   <Icon className="w-3.5 h-3.5" />{t.label}
                 </button>
               )
@@ -242,31 +242,31 @@ export default function LLMManagementPage() {
           {/* Tab contents */}
           {tab === 'config' ? (
             <Card>
-              <h3 className="text-sm font-semibold text-white/70 mb-4 flex items-center gap-2">
-                <Settings2 className="w-4 h-4 text-violet-400" /> Active RAG Configuration Parameters
+              <h3 className="text-sm font-semibold text-adaptive-primary mb-4 flex items-center gap-2">
+                <Settings2 className="w-4 h-4 text-violet-500 dark:text-violet-400" /> Active RAG Configuration Parameters
               </h3>
               {activeConfig ? (
                 <div className="space-y-4 max-w-md">
-                  <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 space-y-3">
+                  <div className="bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl p-4 space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-xs text-white/40">Active Configuration:</span>
-                      <span className="text-xs text-white/80 font-bold">{activeConfig.name}</span>
+                      <span className="text-xs text-adaptive-secondary">Active Configuration:</span>
+                      <span className="text-xs text-adaptive-primary font-bold">{activeConfig.name}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-xs text-white/40">Active Model:</span>
-                      <span className="text-xs text-white/80 font-mono">{activeConfig.model} ({activeConfig.provider})</span>
+                      <span className="text-xs text-adaptive-secondary">Active Model:</span>
+                      <span className="text-xs text-adaptive-primary font-mono">{activeConfig.model} ({activeConfig.provider})</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-xs text-white/40">Temperature:</span>
-                      <span className="text-xs text-white/80 font-mono">{activeConfig.temperature.toFixed(2)}</span>
+                      <span className="text-xs text-adaptive-secondary">Temperature:</span>
+                      <span className="text-xs text-adaptive-primary font-mono">{activeConfig.temperature.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-xs text-white/40">Max Generation Tokens:</span>
-                      <span className="text-xs text-white/80 font-mono">{activeConfig.max_tokens ?? 'Unlimited'}</span>
+                      <span className="text-xs text-adaptive-secondary">Max Generation Tokens:</span>
+                      <span className="text-xs text-adaptive-primary font-mono">{activeConfig.max_tokens ?? 'Unlimited'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-xs text-white/40">Context Window Size:</span>
-                      <span className="text-xs text-white/80 font-mono">{activeConfig.context_window ?? 'Default'}</span>
+                      <span className="text-xs text-adaptive-secondary">Context Window Size:</span>
+                      <span className="text-xs text-adaptive-primary font-mono">{activeConfig.context_window ?? 'Default'}</span>
                     </div>
                   </div>
                   <Btn variant="primary" size="sm" onClick={() => openEdit(activeConfig)}>
@@ -274,25 +274,25 @@ export default function LLMManagementPage() {
                   </Btn>
                 </div>
               ) : (
-                <p className="text-xs text-white/35">No current configuration set active. Go to Providers to activate a model.</p>
+                <p className="text-xs text-adaptive-muted">No current configuration set active. Go to Providers to activate a model.</p>
               )}
             </Card>
           ) : tab === 'test' ? (
             <Card>
-              <h3 className="text-sm font-semibold text-white/70 mb-4 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-blue-400" /> Model Connectivity Testing Panel
+              <h3 className="text-sm font-semibold text-adaptive-primary mb-4 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-blue-500 dark:text-blue-400" /> Model Connectivity Testing Panel
               </h3>
-              <p className="text-xs text-white/40 mb-4">Validate credentials and network latency for registered model providers.</p>
+              <p className="text-xs text-adaptive-secondary mb-4">Validate credentials and network latency for registered model providers.</p>
               <div className="space-y-3">
                 {rawRows.map(row => (
-                  <div key={row.id} className="flex items-center justify-between bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
+                  <div key={row.id} className="flex items-center justify-between bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl p-3">
                     <div>
-                      <p className="text-xs font-medium text-white/80">{row.name}</p>
-                      <p className="text-[10px] text-white/30">{row.provider} · {row.model} {row.is_current ? '(Active)' : ''}</p>
+                      <p className="text-xs font-medium text-adaptive-primary">{row.name}</p>
+                      <p className="text-[10px] text-adaptive-muted">{row.provider} · {row.model} {row.is_current ? '(Active)' : ''}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       {testResult && testResult.id === row.id && (
-                        <span className={`text-xs ${testResult.success ? 'text-emerald-400' : 'text-red-400'}`}>
+                        <span className={`text-xs ${testResult.success ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                           {testResult.success ? `Success (${testResult.latencyMs}ms)` : 'Failed'}
                         </span>
                       )}
@@ -311,15 +311,15 @@ export default function LLMManagementPage() {
             </Card>
           ) : (
             <Card>
-              <h3 className="text-sm font-semibold text-white/70 mb-4">
+              <h3 className="text-sm font-semibold text-adaptive-primary mb-4">
                 {tab === 'providers' && 'Registered Providers'}
                 {tab === 'models' && 'Models Catalog'}
                 {tab === 'active' && 'Active Model'}
               </h3>
               {isError ? (
-                <div className="text-center py-8 text-sm text-red-400">
+                <div className="text-center py-8 text-sm text-red-500 dark:text-red-400">
                   {error instanceof ApiError ? error.message : 'Failed to load providers'}
-                  <button onClick={() => refetch()} className="block mx-auto mt-2 text-xs text-blue-400 hover:underline">Retry</button>
+                  <button onClick={() => refetch()} className="block mx-auto mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline">Retry</button>
                 </div>
               ) : (
                 <DataTable
@@ -336,60 +336,60 @@ export default function LLMManagementPage() {
 
       <Modal open={formOpen} onClose={() => setFormOpen(false)} title={editing ? `Configure ${editing.name}` : 'Add Provider'} maxWidth="max-w-lg">
         <div className="space-y-3">
-          {formError && <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">{formError}</div>}
+          {formError && <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl px-3 py-2">{formError}</div>}
 
           <div>
-            <label className="text-[11px] font-medium text-white/50 mb-1 block">Name</label>
+            <label className="text-[11px] font-medium text-adaptive-secondary mb-1 block">Name</label>
             <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-blue-500/50" />
+              className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white rounded-xl px-3 py-2 text-xs outline-none focus:border-blue-500" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] font-medium text-white/50 mb-1 block">Provider</label>
+              <label className="text-[11px] font-medium text-adaptive-secondary mb-1 block">Provider</label>
               <select value={form.provider} disabled={!!editing} onChange={e => setForm(f => ({ ...f, provider: e.target.value }))}
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-blue-500/50 disabled:opacity-50">
-                <option value="">Select…</option>
-                {(registry?.providers ?? []).map(p => <option key={p} value={p}>{p}</option>)}
+                className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white rounded-xl px-3 py-2 text-xs outline-none focus:border-blue-500 disabled:opacity-50">
+                <option value="" className="bg-white text-gray-900 dark:bg-slate-900 dark:text-white">Select…</option>
+                {(registry?.providers ?? []).map(p => <option key={p} value={p} className="bg-white text-gray-900 dark:bg-slate-900 dark:text-white">{p}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[11px] font-medium text-white/50 mb-1 block">Model</label>
+              <label className="text-[11px] font-medium text-adaptive-secondary mb-1 block">Model</label>
               <input value={form.model} onChange={e => setForm(f => ({ ...f, model: e.target.value }))} placeholder="e.g. llama3, gpt-4o-mini"
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white placeholder:text-white/20 outline-none focus:border-blue-500/50" />
+                className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/20 rounded-xl px-3 py-2 text-xs outline-none focus:border-blue-500" />
             </div>
           </div>
 
           <div>
-            <label className="text-[11px] font-medium text-white/50 mb-1 block">Endpoint <span className="text-white/25">(optional — e.g. Ollama base URL)</span></label>
+            <label className="text-[11px] font-medium text-adaptive-secondary mb-1 block">Endpoint <span className="text-adaptive-muted">(optional — e.g. Ollama base URL)</span></label>
             <input value={form.endpoint} onChange={e => setForm(f => ({ ...f, endpoint: e.target.value }))} placeholder="http://localhost:11434"
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white placeholder:text-white/20 outline-none focus:border-blue-500/50" />
+              className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/20 rounded-xl px-3 py-2 text-xs outline-none focus:border-blue-500" />
           </div>
 
           <div>
-            <label className="text-[11px] font-medium text-white/50 mb-1 block">API Key Env Var <span className="text-white/25">(name only — never the key itself)</span></label>
+            <label className="text-[11px] font-medium text-adaptive-secondary mb-1 block">API Key Env Var <span className="text-adaptive-muted">(name only — never the key itself)</span></label>
             <input value={form.api_key_env_var} onChange={e => setForm(f => ({ ...f, api_key_env_var: e.target.value }))} placeholder="OPENAI_API_KEY"
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white placeholder:text-white/20 outline-none focus:border-blue-500/50" />
+              className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/20 rounded-xl px-3 py-2 text-xs outline-none focus:border-blue-500" />
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-[11px] font-medium text-white/50 mb-1 block">Temperature</label>
+              <label className="text-[11px] font-medium text-adaptive-secondary mb-1 block">Temperature</label>
               <input type="number" step="0.1" min="0" max="2" value={form.temperature}
                 onChange={e => setForm(f => ({ ...f, temperature: Number(e.target.value) }))}
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-blue-500/50" />
+                className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white rounded-xl px-3 py-2 text-xs outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="text-[11px] font-medium text-white/50 mb-1 block">Max Tokens</label>
+              <label className="text-[11px] font-medium text-adaptive-secondary mb-1 block">Max Tokens</label>
               <input type="number" min="1" value={form.max_tokens ?? ''}
                 onChange={e => setForm(f => ({ ...f, max_tokens: e.target.value ? Number(e.target.value) : undefined }))}
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-blue-500/50" />
+                className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white rounded-xl px-3 py-2 text-xs outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="text-[11px] font-medium text-white/50 mb-1 block">Context Window</label>
+              <label className="text-[11px] font-medium text-adaptive-secondary mb-1 block">Context Window</label>
               <input type="number" min="1" value={form.context_window ?? ''}
                 onChange={e => setForm(f => ({ ...f, context_window: e.target.value ? Number(e.target.value) : undefined }))}
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-blue-500/50" />
+                className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white rounded-xl px-3 py-2 text-xs outline-none focus:border-blue-500" />
             </div>
           </div>
 

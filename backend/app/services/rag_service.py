@@ -44,7 +44,8 @@ from app.services.context_fusion_service import ContextFusionResult, fuse_contex
 from app.services.enterprise_llm_service import GeneratedAnswer, generate_answer
 from app.services.evidence_verification_service import VerificationResult, verify_answer
 from app.services.query_log_service import log_query, new_query_id
-from app.services.ticket_service import maybe_create_ticket
+from app.services.citation_service import GroundingResult
+from app.services.confidence_service import calculate_retrieval_confidence
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -62,36 +63,6 @@ async def answer_question(
     score_threshold: float = 0.0,
     model: Optional[str] = None,
 ) -> dict:
-    """
-    Execute the full RAG pipeline for a user question.
-
-    Args:
-        db:               Active SQLAlchemy session (BM25/graph retrieval need it).
-        query:            The natural-language question to answer.
-        current_user:     Authenticated caller (required — POST /rag/query has
-                          required auth since the RBAC Foundation phase).
-                          Recorded on any ticket this query raises, so
-                          GET /tickets can scope "my tickets" for roles
-                          without TICKET_ASSIGN/TICKET_RESOLVE.
-        caller_role:      Authenticated caller's role. Together with
-                          current_user, this builds the
-                          chunk_access_service.ChunkAccessContext that gates
-                          EVERY chunk this request can possibly see — see
-                          Step 1 below. This is a security-critical
-                          parameter: there is no default, so a caller
-                          cannot accidentally omit it and retrieve
-                          unscoped.
-        top_k:            Maximum number of chunks to retrieve.
-        document_id:      If set, filters results to chunks from that document only.
-        score_threshold:  Minimum retriever score to include a chunk (0.0 = no filter).
-        model:             Optional LLM override ("llama3"/"gemma"/"mistral"/"qwen"
-                          or a raw Ollama tag); ignored for OpenAI/Groq providers.
-
-    Returns:
-        A dict with keys: answer, sources, total_indexed, retrieved_chunks,
-        query_analysis, retrieval_route, context_fusion, model_used, grounding,
-        verification, query_id.
-    """
     query_id = new_query_id()
     started_at = time.perf_counter()
     logger.info(
@@ -99,19 +70,38 @@ async def answer_question(
         query_id, query[:60], top_k, document_id, current_user.email, caller_role.value,
     )
 
-    # ─── Step 0b: Domain-Aware Chunk Access Control ───────────────────────────
-    # Built once per request, threaded through every retrieval/re-retrieval
-    # call below — see app/services/chunk_access_service.py.
     access_ctx: ChunkAccessContext = build_chunk_access_context(db, current_user, caller_role)
 
-    # ─── Step 0: Query Intelligence (Phase 7 – Module 5) ──────────────────────
-    # Parses/normalizes the question, detects intent, entities, complexity and
-    # temporal scope, and widens retrieval breadth for medium/complex queries
-    # (e.g. comparison questions spanning a date range need more evidence).
     analysis: QueryAnalysis = await analyze_query(query, default_top_k=top_k)
     effective_top_k = analysis.suggested_top_k
 
     store = get_vector_store()
+
+    # Instant response for conversational greetings
+    if analysis.intent.intent == "greeting":
+        greeting_text = (
+            "Hello! I am your Enterprise RAG & LLM Assistant. "
+            "How can I assist you with your knowledge base documents today?"
+        )
+        latency_ms = (time.perf_counter() - started_at) * 1000
+        return {
+            "answer": greeting_text,
+            "sources": [],
+            "total_indexed": store.total,
+            "retrieved_chunks": 0,
+            "query": query,
+            "query_id": query_id,
+            "query_analysis": analysis,
+            "retrieval_route": None,
+            "context_fusion": None,
+            "model_used": "system",
+            "provider": "system",
+            "grounding": GroundingResult(is_grounded=True, declined=False),
+            "verification": None,
+            "confidence_score": 1.0,
+            "ticket": None,
+            "latency_ms": round(latency_ms, 2),
+        }
     if store.total == 0:
         logger.warning("[RAG] Knowledge base is empty – no documents ingested yet.")
         return {
@@ -129,6 +119,7 @@ async def answer_question(
             "model_used": None,
             "grounding": None,
             "verification": None,
+            "confidence_score": 0.0,
         }
 
     # ─── Step 1: Adaptive Retrieval (Phase 8 – Module 6) ──────────────────────
@@ -238,26 +229,41 @@ async def answer_question(
             latency_ms=latency_ms,
         )
 
+    # If the user input was a conversational greeting ("hi", "hello"), mark grounding as True (valid conversational response)
+    if analysis.intent.intent == "greeting" and generated.grounding:
+        generated.grounding.is_grounded = True
+
+    # ─── Step 10.5: Deterministic Retrieval Confidence Score ───────────────────
+    retrieval_confidence = calculate_retrieval_confidence(fused_results if fused_results else raw_results)
+
+    # Determine overall effective confidence (min of retrieval and verification confidence if available)
+    effective_confidence = retrieval_confidence
+    if verification is not None and verification.confidence_score is not None:
+        effective_confidence = min(effective_confidence, verification.confidence_score)
+
     # ─── Step 11: Automatic Ticketing ─────────────────────────────────────────
-    # A verification confidence below the dynamically configured administrator
+    # An effective confidence below the dynamically configured administrator
     # threshold triggers automatic ticket generation and replaces the answer
-    # with a safe user notification message.
+    # with a safe user notification message. Skipped for conversational greetings.
     ticket = None
     ticket_user_message = None
-    if verification is not None and verification.confidence_score is not None:
+    if analysis.intent.intent != "greeting":
         from app.services.ticket_service import create_ticket_from_low_confidence, get_ticket_confidence_threshold
         
         configured_threshold = get_ticket_confidence_threshold(db)
-        if verification.confidence_score < configured_threshold:
+        if effective_confidence < configured_threshold:
             ticket, ticket_user_message = create_ticket_from_low_confidence(
                 db,
                 query_id=query_id,
                 user_id=str(current_user.id),
                 original_question=query,
                 generated_answer=answer_text,
-                confidence_score=verification.confidence_score,
+                confidence_score=effective_confidence,
                 confidence_threshold=configured_threshold,
-                evidence=f"Verification confidence ({verification.confidence_score:.2f}) < threshold ({configured_threshold:.2f}). Claims: {verification.claims_total}, Hallucinations: {len(verification.hallucinations)}",
+                evidence=(
+                    f"Overall confidence ({effective_confidence:.2f}) < threshold ({configured_threshold:.2f}). "
+                    f"Retrieval confidence: {retrieval_confidence:.2f}."
+                ),
                 source_document_ids=sorted(d for d in seen_doc_ids if d != "unknown"),
                 intent=analysis.intent.intent,
                 entities=analysis.entities,
@@ -279,6 +285,7 @@ async def answer_question(
         "provider": generated.provider,
         "grounding": generated.grounding,
         "verification": verification,
+        "confidence_score": effective_confidence,
         "ticket": (
             {
                 "id": str(ticket.id),

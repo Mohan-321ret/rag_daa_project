@@ -30,7 +30,7 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-VALID_INTENTS = ("fact", "comparison", "procedural", "definition", "summary", "yes_no", "other")
+VALID_INTENTS = ("fact", "comparison", "procedural", "definition", "summary", "yes_no", "greeting", "other")
 
 
 @dataclass
@@ -42,6 +42,10 @@ class IntentResult:
 
 # ── Heuristic classifier ───────────────────────────────────────────────────────
 
+_GREETING_RE = re.compile(
+    r"^(hi|hello|hey|greetings|good morning|good afternoon|good evening|howdy|hi there|hello there)\b[!.?]*$",
+    re.IGNORECASE,
+)
 _COMPARISON_RE = re.compile(
     r"\b(compare|comparison|versus|vs\.?|difference between|differ(?:s|ence)?|"
     r"which is (?:better|higher|lower|larger|smaller)|older (?:vs|and)|"
@@ -75,6 +79,8 @@ _FACT_RE = re.compile(
 def _classify_heuristic(normalized_query: str) -> IntentResult:
     q = normalized_query.strip()
 
+    if _GREETING_RE.match(q):
+        return IntentResult("greeting", 0.95, "heuristic")
     if _COMPARISON_RE.search(q):
         return IntentResult("comparison", 0.9, "heuristic")
     if _PROCEDURAL_RE.match(q):

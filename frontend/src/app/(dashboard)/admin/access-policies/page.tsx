@@ -4,7 +4,7 @@ import { AdminSectionShell } from '@/components/admin/AdminSectionShell'
 import { PermissionGate } from '@/components/admin/PermissionGate'
 import { Permission, ROLE_PERMISSIONS, ROLE_LABELS, type Role } from '@/lib/rbac'
 
-const ROLES_IN_ORDER = ['platform_owner', 'super_admin', 'domain_manager', 'analyst', 'standard_employee', 'client_user', 'guest_user']
+const ROLES_IN_ORDER = ['platform_owner', 'super_admin', 'domain_manager', 'hr', 'analyst', 'standard_employee', 'client_user', 'guest_user']
 
 const POLICY_SECTIONS = [
   {
@@ -63,15 +63,15 @@ const POLICY_SECTIONS = [
 
 const ROLE_SHORT: Record<string, string> = {
   platform_owner: 'Owner', super_admin: 'Super', domain_manager: 'Domain Mgr',
-  analyst: 'Analyst', standard_employee: 'Employee', client_user: 'Client', guest_user: 'Guest',
+  hr: 'HR', analyst: 'Analyst', standard_employee: 'Employee', client_user: 'Client', guest_user: 'Guest',
 }
 
 function Cell({ granted }: { granted: boolean }) {
   return (
     <td className="px-2 py-2 text-center">
       {granted
-        ? <Check className="w-3.5 h-3.5 text-emerald-400 mx-auto" />
-        : <X className="w-3.5 h-3.5 text-white/15 mx-auto" />}
+        ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 mx-auto" />
+        : <X className="w-3.5 h-3.5 text-gray-300 dark:text-white/15 mx-auto" />}
     </td>
   )
 }
@@ -84,14 +84,14 @@ export default function AccessPoliciesPage() {
         description="Full permission matrix — what each role can do across the platform."
         breadcrumbs={[{ label: 'Admin Panel', href: '/admin/users' }, { label: 'Access Policies' }]}
       >
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto bg-white dark:bg-transparent rounded-xl border border-gray-200 dark:border-white/[0.06] shadow-sm dark:shadow-none p-2">
           <table className="w-full text-xs min-w-[800px]">
             <thead>
               <tr>
-                <th className="text-left px-3 py-3 text-white/35 font-medium w-44">Permission</th>
+                <th className="text-left px-3 py-3 text-gray-500 dark:text-white/35 font-medium w-44">Permission</th>
                 {ROLES_IN_ORDER.map(r => (
                   <th key={r} className="px-2 py-3 text-center">
-                    <span className="text-white/50 font-medium whitespace-nowrap">{ROLE_SHORT[r]}</span>
+                    <span className="text-gray-700 dark:text-white/50 font-medium whitespace-nowrap">{ROLE_SHORT[r]}</span>
                   </th>
                 ))}
               </tr>
@@ -101,12 +101,12 @@ export default function AccessPoliciesPage() {
                 <>
                   <tr key={`hdr-${section.label}`}>
                     <td colSpan={ROLES_IN_ORDER.length + 1} className="px-3 py-2 pt-4">
-                      <span className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">{section.label}</span>
+                      <span className="text-[11px] font-semibold text-gray-500 dark:text-white/40 uppercase tracking-wider">{section.label}</span>
                     </td>
                   </tr>
                   {section.perms.map(perm => (
-                    <tr key={perm.key} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
-                      <td className="px-3 py-2 text-white/60">{perm.label}</td>
+                    <tr key={perm.key} className="border-b border-gray-100 dark:border-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
+                      <td className="px-3 py-2 text-gray-800 dark:text-white/60">{perm.label}</td>
                       {ROLES_IN_ORDER.map(role => (
                         <Cell
                           key={role}
@@ -121,10 +121,10 @@ export default function AccessPoliciesPage() {
           </table>
         </div>
 
-        <div className="mt-4 flex items-center gap-4 text-[11px] text-white/30">
-          <span className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-400" /> Permission granted</span>
-          <span className="flex items-center gap-1.5"><X className="w-3 h-3 text-white/20" /> Not granted</span>
-          <span className="ml-auto">Matrix mirrors backend <code className="text-white/20">app/core/permissions.py</code></span>
+        <div className="mt-4 flex items-center gap-4 text-[11px] text-adaptive-muted">
+          <span className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Permission granted</span>
+          <span className="flex items-center gap-1.5"><X className="w-3 h-3 text-gray-400 dark:text-white/20" /> Not granted</span>
+          <span className="ml-auto">Matrix mirrors backend <code className="text-gray-500 dark:text-white/20">app/core/permissions.py</code></span>
         </div>
       </AdminSectionShell>
     </PermissionGate>

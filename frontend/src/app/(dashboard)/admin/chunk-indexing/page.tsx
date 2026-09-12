@@ -130,33 +130,33 @@ export default function ChunkIndexingDashboardPage() {
 
   const chunkColumns = [
     { key: 'select', label: '', render: (_: unknown, row: ChunkRow) => (
-      <input type="checkbox" checked={selected.has(row.id)} onChange={() => toggleSelected(row.id)} onClick={e => e.stopPropagation()} className="rounded border-white/20 bg-white/[0.04]" />
+      <input type="checkbox" checked={selected.has(row.id)} onChange={() => toggleSelected(row.id)} onClick={e => e.stopPropagation()} className="rounded border-gray-300 dark:border-white/20 bg-gray-50 dark:bg-white/[0.04]" />
     )},
     { key: 'text', label: 'Chunk Text', render: (v: unknown) => (
-      <p className="text-xs text-white/70 max-w-sm truncate">{String(v)}</p>
+      <p className="text-xs text-gray-800 dark:text-white/70 max-w-sm truncate">{String(v)}</p>
     )},
     { key: 'status', label: 'Status', render: (v: unknown) => <StatusBadge status={String(v)} /> },
-    { key: 'document_id', label: 'Document', render: (v: unknown) => <span className="text-[10px] font-mono text-white/40">{String(v)}</span> },
-    { key: 'domain_name', label: 'Domain', render: (v: unknown) => <span className="text-xs text-white/50">{String(v || 'Global')}</span> },
-    { key: 'updated_at', label: 'Last Indexed', render: (v: unknown) => <span className="text-[11px] text-white/30">{formatDateTime(String(v))}</span> },
+    { key: 'document_id', label: 'Document', render: (v: unknown) => <span className="text-[10px] font-mono text-gray-500 dark:text-white/40">{String(v)}</span> },
+    { key: 'domain_name', label: 'Domain', render: (v: unknown) => <span className="text-xs text-gray-600 dark:text-white/50">{String(v || 'Global')}</span> },
+    { key: 'updated_at', label: 'Last Indexed', render: (v: unknown) => <span className="text-[11px] text-gray-400 dark:text-white/30">{formatDateTime(String(v))}</span> },
   ]
 
   const jobColumns = [
-    { key: 'job_id', label: 'Job ID', render: (v: unknown) => <span className="text-[11px] font-mono text-white/50">{String(v)}</span> },
-    { key: 'job_type', label: 'Type', render: (v: unknown) => <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-white/[0.06] text-white/40">{String(v)}</span> },
+    { key: 'job_id', label: 'Job ID', render: (v: unknown) => <span className="text-[11px] font-mono text-gray-600 dark:text-white/50">{String(v)}</span> },
+    { key: 'job_type', label: 'Type', render: (v: unknown) => <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-gray-100 dark:bg-white/[0.06] text-gray-600 dark:text-white/40">{String(v)}</span> },
     { key: 'status', label: 'Status', render: (v: unknown) => <StatusBadge status={String(v)} /> },
     { key: 'progress', label: 'Progress', render: (_: unknown, row: JobRow) => {
       const pct = row.total_items > 0 ? Math.round((row.processed_items / row.total_items) * 100) : 0
       return (
         <div className="flex items-center gap-2 w-28">
-          <div className="flex-1 h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
+          <div className="flex-1 h-1.5 bg-gray-200 dark:bg-white/[0.08] rounded-full overflow-hidden">
             <div className="h-full bg-blue-500 rounded-full" style={{ width: `${pct}%` }} />
           </div>
-          <span className="text-[10px] font-mono text-white/40 w-8 text-right">{pct}%</span>
+          <span className="text-[10px] font-mono text-gray-500 dark:text-white/40 w-8 text-right">{pct}%</span>
         </div>
       )
     }},
-    { key: 'created_at', label: 'Created', render: (v: unknown) => <span className="text-[11px] text-white/30">{formatDateTime(String(v))}</span> },
+    { key: 'created_at', label: 'Created', render: (v: unknown) => <span className="text-[11px] text-gray-400 dark:text-white/30">{formatDateTime(String(v))}</span> },
   ]
 
   const selectTab = (t: Tab) => {
@@ -179,17 +179,17 @@ export default function ChunkIndexingDashboardPage() {
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {[
-                { label: 'Total Vectors', value: stats.total_chunks, icon: <Layers className="w-4 h-4" />, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-                { label: 'Indexed OK', value: stats.indexed_chunks, icon: <CheckCircle className="w-4 h-4" />, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-                { label: 'Pending Index', value: stats.pending_chunks, icon: <Clock className="w-4 h-4" />, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-                { label: 'Failed Index', value: stats.failed_chunks, icon: <AlertCircle className="w-4 h-4" />, color: 'text-red-400', bg: 'bg-red-500/10' },
-                { label: 'Stale Vectors', value: stats.stale_chunks, icon: <XCircle className="w-4 h-4" />, color: 'text-white/40', bg: 'bg-white/[0.04]' },
+                { label: 'Total Vectors', value: stats.total_chunks, icon: <Layers className="w-4 h-4" />, color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/10' },
+                { label: 'Indexed OK', value: stats.indexed_chunks, icon: <CheckCircle className="w-4 h-4" />, color: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+                { label: 'Pending Index', value: stats.pending_chunks, icon: <Clock className="w-4 h-4" />, color: 'text-amber-500 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
+                { label: 'Failed Index', value: stats.failed_chunks, icon: <AlertCircle className="w-4 h-4" />, color: 'text-red-500 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-500/10' },
+                { label: 'Stale Vectors', value: stats.stale_chunks, icon: <XCircle className="w-4 h-4" />, color: 'text-gray-500 dark:text-white/40', bg: 'bg-gray-100 dark:bg-white/[0.04]' },
               ].map(s => (
-                <div key={s.label} className={`${s.bg} rounded-2xl p-4 flex items-center gap-3 border border-white/[0.05]`}>
+                <div key={s.label} className={`${s.bg} rounded-2xl p-4 flex items-center gap-3 border border-gray-200 dark:border-white/[0.05] shadow-sm`}>
                   <div className={s.color}>{s.icon}</div>
                   <div>
-                    <p className="text-xl font-bold text-white">{s.value}</p>
-                    <p className="text-[11px] text-white/40">{s.label}</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">{s.value}</p>
+                    <p className="text-[11px] text-gray-500 dark:text-white/40">{s.label}</p>
                   </div>
                 </div>
               ))}
@@ -197,11 +197,11 @@ export default function ChunkIndexingDashboardPage() {
           )}
 
           {actionError && (
-            <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">{actionError}</div>
+            <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl px-3 py-2">{actionError}</div>
           )}
 
           {/* Sub-tabs Navigation */}
-          <div className="flex items-center gap-1 bg-white/[0.03] border border-white/[0.07] rounded-xl p-1 w-fit mb-2 flex-wrap">
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.07] rounded-xl p-1 w-fit mb-2 flex-wrap">
             {[
               { id: 'explorer' as Tab, label: 'Chunk Explorer', icon: Boxes },
               { id: 'status' as Tab, label: 'Index Status', icon: BarChart2 },
@@ -212,7 +212,7 @@ export default function ChunkIndexingDashboardPage() {
               const Icon = t.icon
               return (
                 <button key={t.id} onClick={() => selectTab(t.id)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === t.id ? 'bg-blue-600 text-white' : 'text-white/40 hover:text-white/70'}`}>
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === t.id ? 'bg-blue-600 text-white' : 'text-gray-500 dark:text-white/40 hover:text-gray-900 dark:hover:text-white/70'}`}>
                   <Icon className="w-3.5 h-3.5" />{t.label}
                 </button>
               )
@@ -224,14 +224,14 @@ export default function ChunkIndexingDashboardPage() {
             <div className="space-y-6">
               <Card>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-white/70">Index Status</h3>
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-white/70">Index Status</h3>
                   <Btn size="sm" variant="ghost" onClick={refreshAll}><RefreshCw className="w-3 h-3 animate-spin" /> Refresh</Btn>
                 </div>
                 <div className="space-y-4">
-                  <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
-                    <p className="text-xs font-semibold text-white/70 mb-2">Active Reindexing Tasks ({activeJobs.length})</p>
+                  <div className="bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl p-4">
+                    <p className="text-xs font-semibold text-gray-800 dark:text-white/70 mb-2">Active Reindexing Tasks ({activeJobs.length})</p>
                     {activeJobs.length === 0 ? (
-                      <p className="text-xs text-white/35">No active reindexing jobs at the moment.</p>
+                      <p className="text-xs text-gray-500 dark:text-white/35">No active reindexing jobs at the moment.</p>
                     ) : (
                       <DataTable
                         data={activeJobs.map(j => ({ ...j, id: j.job_id }))}
@@ -249,7 +249,7 @@ export default function ChunkIndexingDashboardPage() {
             <div className="space-y-6">
               <Can permission={Permission.CHUNK_REINDEX}>
                 <Card>
-                  <h3 className="text-sm font-semibold text-white/70 mb-3">Index Maintenance</h3>
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-white/70 mb-3">Index Maintenance</h3>
                   <div className="flex flex-wrap items-center gap-3">
                     <Btn variant="secondary" size="sm" disabled={busy === 'retry-failed'}
                       onClick={() => runAction('retry-failed', () => chunkIndexingApi.retryFailed())}>
@@ -261,9 +261,9 @@ export default function ChunkIndexingDashboardPage() {
                     </Btn>
                     <div className="flex items-center gap-2">
                       <select value={reindexDomainId} onChange={e => setReindexDomainId(e.target.value)}
-                        className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-blue-500/50">
-                        <option value="">Select a domain…</option>
-                        {domains.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                        className="bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-white outline-none focus:border-blue-500/50">
+                        <option value="" className="bg-white text-gray-900 dark:bg-[#0e0e16] dark:text-white">Select a domain…</option>
+                        {domains.map(d => <option key={d.id} value={d.id} className="bg-white text-gray-900 dark:bg-[#0e0e16] dark:text-white">{d.name}</option>)}
                       </select>
                       <Btn variant="secondary" size="sm" disabled={!reindexDomainId || busy === 'reindex-domain'}
                         onClick={() => runAction('reindex-domain', () => chunkIndexingApi.reindexDomain(reindexDomainId))}>
@@ -280,11 +280,11 @@ export default function ChunkIndexingDashboardPage() {
               </Can>
 
               <Card>
-                <h3 className="text-sm font-semibold text-white/70 mb-4">Reindex Job History</h3>
+                <h3 className="text-sm font-semibold text-gray-800 dark:text-white/70 mb-4">Reindex Job History</h3>
                 {jobsError ? (
-                  <div className="text-center py-8 text-sm text-red-400">
+                  <div className="text-center py-8 text-sm text-red-600 dark:text-red-400">
                     {jobsErrObj instanceof ApiError ? jobsErrObj.message : 'Failed to load jobs'}
-                    <button onClick={() => refetchJobs()} className="block mx-auto mt-2 text-xs text-blue-400 hover:underline">Retry</button>
+                    <button onClick={() => refetchJobs()} className="block mx-auto mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline">Retry</button>
                   </div>
                 ) : (
                   <DataTable
@@ -302,28 +302,28 @@ export default function ChunkIndexingDashboardPage() {
           {(tab === 'explorer' || tab === 'failed' || tab === 'stale') && (
             <Card>
               <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-                <h3 className="text-sm font-semibold text-white/70">
+                <h3 className="text-sm font-semibold text-gray-800 dark:text-white/70">
                   {tab === 'explorer' && 'Chunk Explorer'}
                   {tab === 'failed' && 'Failed Chunks'}
                   {tab === 'stale' && 'Stale Chunks'}
                 </h3>
                 <div className="flex items-center gap-3 flex-wrap">
-                  <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-1.5">
-                    <Search className="w-3.5 h-3.5 text-white/30" />
-                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search chunk text..." className="bg-transparent text-xs text-white/60 placeholder:text-white/25 outline-none w-40" />
+                  <div className="flex items-center gap-2 bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] rounded-xl px-3 py-1.5">
+                    <Search className="w-3.5 h-3.5 text-gray-400 dark:text-white/30" />
+                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search chunk text..." className="bg-transparent text-xs text-gray-900 dark:text-white/60 placeholder:text-gray-400 dark:placeholder:text-white/25 outline-none w-40" />
                   </div>
                   <input value={documentFilter} onChange={e => setDocumentFilter(e.target.value)} placeholder="document_id"
-                    className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white/60 placeholder:text-white/25 outline-none w-32" />
+                    className="bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-gray-900 dark:text-white/60 placeholder:text-gray-400 dark:placeholder:text-white/25 outline-none w-32" />
                   <select value={domainFilter} onChange={e => setDomainFilter(e.target.value)}
-                    className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white outline-none">
-                    <option value="">All domains</option>
-                    {domains.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                    className="bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-gray-900 dark:text-white outline-none">
+                    <option value="" className="bg-white text-gray-900 dark:bg-[#0e0e16] dark:text-white">All domains</option>
+                    {domains.map(d => <option key={d.id} value={d.id} className="bg-white text-gray-900 dark:bg-[#0e0e16] dark:text-white">{d.name}</option>)}
                   </select>
                   {tab === 'explorer' && (
-                    <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.08] rounded-xl p-1">
+                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] rounded-xl p-1">
                       {CHUNK_FILTERS.map(f => (
                         <button key={f.id} onClick={() => setStatusFilter(f.id)}
-                          className={`px-3 py-1 rounded-lg text-[11px] font-medium transition-all ${statusFilter === f.id ? 'bg-blue-600 text-white' : 'text-white/40 hover:text-white/70'}`}>
+                          className={`px-3 py-1 rounded-lg text-[11px] font-medium transition-all ${statusFilter === f.id ? 'bg-blue-600 text-white' : 'text-gray-500 dark:text-white/40 hover:text-gray-800 dark:hover:text-white/70'}`}>
                           {f.label}
                         </button>
                       ))}
@@ -334,8 +334,8 @@ export default function ChunkIndexingDashboardPage() {
 
               <Can permission={Permission.CHUNK_REINDEX}>
                 {selected.size > 0 && (
-                  <div className="flex items-center justify-between mb-3 px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                    <span className="text-xs text-blue-300">{selected.size} chunk(s) selected</span>
+                  <div className="flex items-center justify-between mb-3 px-3 py-2 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl">
+                    <span className="text-xs text-blue-700 dark:text-blue-300">{selected.size} chunk(s) selected</span>
                     <Btn variant="primary" size="sm" disabled={busy === 'reindex-selected'}
                       onClick={() => runAction('reindex-selected', () => chunkIndexingApi.reindexChunks(Array.from(selected)))}>
                       <RefreshCw className="w-3.5 h-3.5" /> Re-index Selected
@@ -345,9 +345,9 @@ export default function ChunkIndexingDashboardPage() {
               </Can>
 
               {chunksError ? (
-                <div className="text-center py-8 text-sm text-red-400">
+                <div className="text-center py-8 text-sm text-red-600 dark:text-red-400">
                   {chunksErrObj instanceof ApiError ? chunksErrObj.message : 'Failed to load chunks'}
-                  <button onClick={() => refetchChunks()} className="block mx-auto mt-2 text-xs text-blue-400 hover:underline">Retry</button>
+                  <button onClick={() => refetchChunks()} className="block mx-auto mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline">Retry</button>
                 </div>
               ) : (
                 <DataTable
@@ -384,46 +384,46 @@ function JobDetail({ job }: { job: ReindexJobOut }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs text-white/40">Job</p>
-          <p className="text-xs font-mono text-white/70">{job.job_id}</p>
+          <p className="text-xs text-gray-400 dark:text-white/40">Job</p>
+          <p className="text-xs font-mono text-gray-700 dark:text-white/70">{job.job_id}</p>
         </div>
         <StatusBadge status={job.status} size="md" />
       </div>
 
       <div className="grid grid-cols-3 gap-3 text-center">
-        <div className="bg-white/[0.03] rounded-xl p-3">
-          <p className="text-lg font-bold text-white">{job.total_items}</p>
-          <p className="text-[10px] text-white/40">Total</p>
+        <div className="bg-gray-50 dark:bg-white/[0.03] rounded-xl p-3">
+          <p className="text-lg font-bold text-gray-900 dark:text-white">{job.total_items}</p>
+          <p className="text-[10px] text-gray-500 dark:text-white/40">Total</p>
         </div>
-        <div className="bg-white/[0.03] rounded-xl p-3">
-          <p className="text-lg font-bold text-emerald-400">{job.processed_items - job.failed_items}</p>
-          <p className="text-[10px] text-white/40">Succeeded</p>
+        <div className="bg-gray-50 dark:bg-white/[0.03] rounded-xl p-3">
+          <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{job.processed_items - job.failed_items}</p>
+          <p className="text-[10px] text-gray-500 dark:text-white/40">Succeeded</p>
         </div>
-        <div className="bg-white/[0.03] rounded-xl p-3">
-          <p className="text-lg font-bold text-red-400">{job.failed_items}</p>
-          <p className="text-[10px] text-white/40">Failed</p>
+        <div className="bg-gray-50 dark:bg-white/[0.03] rounded-xl p-3">
+          <p className="text-lg font-bold text-red-600 dark:text-red-400">{job.failed_items}</p>
+          <p className="text-[10px] text-gray-500 dark:text-white/40">Failed</p>
         </div>
       </div>
 
       {job.error_message && (
-        <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">{job.error_message}</div>
+        <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl px-3 py-2">{job.error_message}</div>
       )}
 
       {job.error_log.length > 0 && (
         <div>
-          <p className="text-[11px] font-semibold text-white/50 uppercase tracking-wider mb-2">Errors ({job.error_log.length})</p>
+          <p className="text-[11px] font-semibold text-gray-500 dark:text-white/50 uppercase tracking-wider mb-2">Errors ({job.error_log.length})</p>
           <div className="space-y-1.5 max-h-48 overflow-y-auto">
             {job.error_log.map((e, i) => (
-              <div key={i} className="text-[11px] bg-white/[0.03] rounded-lg px-2.5 py-1.5">
-                <p className="font-mono text-white/50">{e.ref}</p>
-                <p className="text-red-400/80">{e.error}</p>
+              <div key={i} className="text-[11px] bg-gray-50 dark:bg-white/[0.03] rounded-lg px-2.5 py-1.5">
+                <p className="font-mono text-gray-600 dark:text-white/50">{e.ref}</p>
+                <p className="text-red-600 dark:text-red-400/80">{e.error}</p>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <p className="text-[11px] text-white/30">
+      <p className="text-[11px] text-gray-400 dark:text-white/30">
         Created {formatDateTime(job.created_at)}{job.completed_at ? ` · Completed ${formatDateTime(job.completed_at)}` : ''}
       </p>
     </div>

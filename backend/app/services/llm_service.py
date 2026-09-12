@@ -106,8 +106,9 @@ def _build_groq(model, endpoint, api_key, temperature, max_tokens, context_windo
     from langchain_groq import ChatGroq
     resolved_api_key = api_key or os.environ.get("GROQ_API_KEY") or settings.groq_api_key
     kwargs: dict = {"model": model, "groq_api_key": resolved_api_key, "temperature": temperature}
-    if max_tokens:
-        kwargs["max_tokens"] = max_tokens
+    # Cap max_tokens to <= 500 to comply with Groq on-demand tier OTPM limits
+    capped_tokens = max_tokens if (max_tokens and max_tokens <= 500) else 500
+    kwargs["max_tokens"] = capped_tokens
     if endpoint:
         kwargs["base_url"] = endpoint
     return ChatGroq(**kwargs)

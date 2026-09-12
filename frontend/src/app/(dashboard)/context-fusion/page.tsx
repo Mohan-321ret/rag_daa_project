@@ -50,8 +50,8 @@ export default function ContextFusionPage() {
       {loading && (
         <Card>
           <div className="flex items-center justify-center py-12">
-            <div className="flex items-center gap-3 text-white/50">
-              <Layers className="w-5 h-5 animate-pulse text-blue-400" />
+            <div className="flex items-center gap-3 text-gray-500 dark:text-white/50">
+              <Layers className="w-5 h-5 animate-pulse text-blue-500" />
               <span className="text-sm">Deduplicating, ranking, and compressing context...</span>
             </div>
           </div>
@@ -67,35 +67,35 @@ export default function ContextFusionPage() {
           {/* Chunks Panel */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white/70">Fused Chunks</h3>
-              <span className="text-xs text-white/40">{result.chunks.length} chunks</span>
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-white/70">Fused Chunks</h3>
+              <span className="text-xs text-gray-500 dark:text-white/40">{result.chunks.length} chunks</span>
             </div>
             {result.chunks.map((chunk, i) => {
               const compressed = chunk.compressed_char_count != null && chunk.original_char_count != null && chunk.compressed_char_count < chunk.original_char_count
               return (
                 <motion.div key={`${chunk.document_id}-${chunk.chunk_index}`} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                  className={`p-3 rounded-xl border transition-all ${compressed ? 'border-amber-500/20 bg-amber-500/5' : 'border-white/[0.07] bg-white/[0.03]'}`}>
+                  className={`p-3 rounded-xl border transition-all ${compressed ? 'border-amber-200 bg-amber-50 dark:border-amber-500/20 dark:bg-amber-500/5' : 'border-gray-200 bg-white dark:border-white/[0.07] dark:bg-white/[0.03] shadow-sm dark:shadow-none'}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-white/30 font-mono">#{i + 1}</span>
-                      <span className="text-[10px] text-white/50 truncate max-w-[140px]">{chunk.document_id} · chunk {chunk.chunk_index}</span>
-                      {compressed && <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full">Compressed</span>}
+                      <span className="text-[10px] text-gray-400 dark:text-white/30 font-mono">#{i + 1}</span>
+                      <span className="text-[10px] text-gray-500 dark:text-white/50 truncate max-w-[140px]">{chunk.document_id} · chunk {chunk.chunk_index}</span>
+                      {compressed && <span className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-medium">Compressed</span>}
                     </div>
                     <div className="w-16"><ConfidenceMeter value={chunk.score} size="sm" /></div>
                   </div>
-                  <p className="text-[11px] leading-relaxed text-white/60">{chunk.text}</p>
+                  <p className="text-[11px] leading-relaxed text-gray-700 dark:text-white/60">{chunk.text}</p>
                 </motion.div>
               )
             })}
-            {result.chunks.length === 0 && <p className="text-xs text-white/30 text-center py-6">No chunks survived the fusion pipeline.</p>}
+            {result.chunks.length === 0 && <p className="text-xs text-gray-400 dark:text-white/30 text-center py-6">No chunks survived the fusion pipeline.</p>}
           </div>
 
           {/* Final Context */}
           <div className="space-y-4">
             <Card>
               <div className="flex items-center gap-2 mb-3">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-sm font-semibold text-white/70">Fusion Statistics</h3>
+                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                <h3 className="text-sm font-semibold text-gray-800 dark:text-white/70">Fusion Statistics</h3>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {[
@@ -106,9 +106,9 @@ export default function ContextFusionPage() {
                   { label: 'Output Chunks', value: result.stats.chunks_out },
                   { label: 'Compression Ratio', value: `${(result.stats.compression_ratio * 100).toFixed(0)}%` },
                 ].map(s => (
-                  <div key={s.label} className="bg-white/[0.03] rounded-xl p-3 text-center">
-                    <p className="text-lg font-bold text-white">{s.value}</p>
-                    <p className="text-[10px] text-white/30">{s.label}</p>
+                  <div key={s.label} className="bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-transparent rounded-xl p-3 text-center">
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{s.value}</p>
+                    <p className="text-[10px] text-gray-500 dark:text-white/30">{s.label}</p>
                   </div>
                 ))}
               </div>
@@ -117,15 +117,15 @@ export default function ContextFusionPage() {
             <Card>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-blue-400" />
-                  <h3 className="text-sm font-semibold text-white/70">Final Context Window</h3>
+                  <Layers className="w-4 h-4 text-blue-500" />
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-white/70">Final Context Window</h3>
                 </div>
-                <button onClick={() => navigator.clipboard.writeText(result.optimized_context)} className="text-white/30 hover:text-white/60 transition-colors"><Copy className="w-3.5 h-3.5" /></button>
+                <button onClick={() => navigator.clipboard.writeText(result.optimized_context)} className="text-gray-400 dark:text-white/30 hover:text-gray-700 dark:hover:text-white/60 transition-colors"><Copy className="w-3.5 h-3.5" /></button>
               </div>
-              <div className="bg-[#0a0a14] rounded-xl p-4 font-mono text-[11px] text-white/60 leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
+              <div className="bg-slate-100 border border-slate-200 text-slate-800 dark:bg-[#0a0a14] dark:border-white/[0.06] dark:text-white/60 rounded-xl p-4 font-mono text-[11px] leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
                 {result.optimized_context || 'Empty context window.'}
               </div>
-              <div className="mt-3 flex items-center justify-between text-[11px] text-white/40">
+              <div className="mt-3 flex items-center justify-between text-[11px] text-gray-500 dark:text-white/40">
                 <span>{result.stats.chars_in.toLocaleString()} → {result.stats.chars_out.toLocaleString()} chars</span>
               </div>
             </Card>

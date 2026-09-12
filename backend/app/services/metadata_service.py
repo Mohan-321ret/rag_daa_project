@@ -123,9 +123,16 @@ def _ext_to_doc_type(ext: str) -> str:
     return {
         ".pdf": "PDF",
         ".docx": "DOCX",
+        ".doc": "DOC",
         ".txt": "TXT",
+        ".md": "TXT",
         ".html": "HTML",
+        ".htm": "HTML",
         ".pptx": "PPTX",
+        ".ppt": "PPT",
+        ".csv": "CSV",
+        ".xlsx": "XLSX",
+        ".xls": "XLS",
     }.get(ext.lower(), ext.lstrip(".").upper())
 
 

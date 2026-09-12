@@ -64,6 +64,7 @@ class Role(str, Enum):
     PLATFORM_OWNER = "platform_owner"
     SUPER_ADMIN = "super_admin"
     DOMAIN_MANAGER = "domain_manager"
+    HR = "hr"
     ANALYST = "analyst"
     STANDARD_EMPLOYEE = "standard_employee"
     CLIENT_USER = "client_user"
@@ -139,6 +140,7 @@ ROLE_RANK: Dict[Role, int] = {
     Role.CLIENT_USER: 1,
     Role.STANDARD_EMPLOYEE: 2,
     Role.ANALYST: 3,
+    Role.HR: 3,
     Role.DOMAIN_MANAGER: 4,
     Role.SUPER_ADMIN: 5,
     Role.PLATFORM_OWNER: 6,
@@ -268,7 +270,20 @@ ROLE_PERMISSIONS: Dict[Role, FrozenSet[Permission]] = {
         Permission.INGESTION_MONITOR, Permission.INGESTION_RETRY,
         Permission.CHUNK_VIEW, Permission.CHUNK_REINDEX, Permission.CHUNK_DELETE,
         Permission.CHUNK_REBUILD_INDEX,
-        Permission.LLM_VIEW, Permission.LLM_CONFIGURE,
+        Permission.LLM_VIEW,
+        Permission.QUERY_LOG_VIEW_OWN, Permission.QUERY_LOG_VIEW_DOMAIN, Permission.QUERY_LOG_EXPORT,
+        Permission.TICKET_CREATE, Permission.TICKET_VIEW_OWN, Permission.TICKET_VIEW_DOMAIN,
+        Permission.TICKET_ASSIGN, Permission.TICKET_RESOLVE, Permission.TICKET_CLOSE,
+        Permission.ANALYTICS_VIEW_PERSONAL, Permission.ANALYTICS_VIEW_DOMAIN,
+    }),
+
+    Role.HR: frozenset({
+        Permission.USER_READ, Permission.USER_UPDATE,
+        Permission.DOCUMENT_UPLOAD, Permission.DOCUMENT_READ, Permission.DOCUMENT_UPDATE,
+        Permission.DOCUMENT_DELETE, Permission.DOCUMENT_VERSION_MANAGE,
+        Permission.INGESTION_MONITOR, Permission.INGESTION_RETRY,
+        Permission.CHUNK_VIEW,
+        Permission.LLM_VIEW,
         Permission.QUERY_LOG_VIEW_OWN, Permission.QUERY_LOG_VIEW_DOMAIN, Permission.QUERY_LOG_EXPORT,
         Permission.TICKET_CREATE, Permission.TICKET_VIEW_OWN, Permission.TICKET_VIEW_DOMAIN,
         Permission.TICKET_ASSIGN, Permission.TICKET_RESOLVE, Permission.TICKET_CLOSE,
@@ -278,7 +293,7 @@ ROLE_PERMISSIONS: Dict[Role, FrozenSet[Permission]] = {
     Role.ANALYST: frozenset({
         Permission.DOCUMENT_UPLOAD, Permission.DOCUMENT_READ,
         Permission.CHUNK_VIEW,
-        Permission.LLM_VIEW, Permission.LLM_CONFIGURE,
+        Permission.LLM_VIEW,
         Permission.QUERY_LOG_VIEW_OWN, Permission.QUERY_LOG_VIEW_DOMAIN, Permission.QUERY_LOG_EXPORT,
         Permission.TICKET_CREATE, Permission.TICKET_VIEW_OWN, Permission.TICKET_VIEW_DOMAIN,
         Permission.ANALYTICS_VIEW_PERSONAL, Permission.ANALYTICS_VIEW_DOMAIN,
@@ -287,7 +302,7 @@ ROLE_PERMISSIONS: Dict[Role, FrozenSet[Permission]] = {
 
     Role.STANDARD_EMPLOYEE: frozenset({
         Permission.DOCUMENT_UPLOAD, Permission.DOCUMENT_READ,
-        Permission.LLM_VIEW, Permission.LLM_CONFIGURE,
+        Permission.LLM_VIEW,
         Permission.QUERY_LOG_VIEW_OWN,
         Permission.TICKET_CREATE, Permission.TICKET_VIEW_OWN,
         Permission.ANALYTICS_VIEW_PERSONAL,

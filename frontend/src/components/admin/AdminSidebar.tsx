@@ -187,14 +187,14 @@ export function AdminSidebar() {
   })
 
   return (
-    <aside className="w-56 flex-shrink-0 h-full bg-[#07070e]/80 border-r border-white/[0.05] overflow-y-auto no-scrollbar">
+    <aside className="w-56 flex-shrink-0 h-full bg-white dark:bg-[#07070e]/80 border-r border-gray-200 dark:border-white/[0.05] overflow-y-auto no-scrollbar">
       {/* Admin Panel header */}
-      <div className="px-4 py-4 border-b border-white/[0.05]">
+      <div className="px-4 py-4 border-b border-gray-200 dark:border-white/[0.05]">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center flex-shrink-0">
             <Settings2 className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="text-sm font-semibold text-white">Admin Panel</span>
+          <span className="text-sm font-semibold text-gray-900 dark:text-white">Admin Panel</span>
         </div>
       </div>
 
@@ -221,14 +221,14 @@ export function AdminSidebar() {
                 className={cn(
                   'w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-semibold uppercase tracking-wider transition-all',
                   sectionActive
-                    ? 'text-white/90 bg-white/[0.05]'
-                    : 'text-white/35 hover:text-white/60 hover:bg-white/[0.03]'
+                    ? 'text-gray-900 dark:text-white/90 bg-gray-100 dark:bg-white/[0.05]'
+                    : 'text-gray-500 dark:text-white/35 hover:text-gray-900 dark:hover:text-white/60 hover:bg-gray-50 dark:hover:bg-white/[0.03]'
                 )}
               >
                 <SectionIcon className={cn('w-3.5 h-3.5 flex-shrink-0', section.color)} />
                 <span className="flex-1 text-left">{section.label}</span>
                 <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.15 }}>
-                  <ChevronDown className="w-3 h-3 text-white/25" />
+                  <ChevronDown className="w-3 h-3 text-gray-400 dark:text-white/25" />
                 </motion.div>
               </button>
 
@@ -242,7 +242,7 @@ export function AdminSidebar() {
                     transition={{ duration: 0.18, ease: 'easeInOut' }}
                     className="overflow-hidden"
                   >
-                    <div className="ml-2 pl-3 border-l border-white/[0.06] mt-0.5 mb-1 space-y-0.5">
+                    <div className="ml-2 pl-3 border-l border-gray-200 dark:border-white/[0.06] mt-0.5 mb-1 space-y-0.5">
                       {visibleItems.map(item => {
                         const ItemIcon = item.icon
                         const isActive = pathname === item.href || pathname.startsWith(item.href.split('?')[0])
@@ -253,19 +253,19 @@ export function AdminSidebar() {
                               className={cn(
                                 'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all group',
                                 isActive
-                                  ? 'bg-blue-500/15 text-blue-300 border border-blue-500/20'
-                                  : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04]'
+                                  ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/20'
+                                  : 'text-gray-600 dark:text-white/40 hover:text-gray-900 dark:hover:text-white/70 hover:bg-gray-100 dark:hover:bg-white/[0.04]'
                               )}
                             >
                               <ItemIcon className={cn(
                                 'w-3.5 h-3.5 flex-shrink-0',
-                                isActive ? 'text-blue-400' : 'text-white/30 group-hover:text-white/50'
+                                isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-white/30 group-hover:text-gray-600 dark:group-hover:text-white/50'
                               )} />
                               {item.label}
                               {isActive && (
                                 <motion.div
                                   layoutId={`admin-active-${section.id}`}
-                                  className="ml-auto w-1 h-1 rounded-full bg-blue-400 flex-shrink-0"
+                                  className="ml-auto w-1 h-1 rounded-full bg-blue-600 dark:bg-blue-400 flex-shrink-0"
                                 />
                               )}
                             </motion.div>

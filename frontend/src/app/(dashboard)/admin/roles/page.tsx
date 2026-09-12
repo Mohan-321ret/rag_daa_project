@@ -9,16 +9,17 @@ import { permissionsApi, type PermissionMatrixResponse } from '@/lib/api'
 
 // Role color mapping
 const ROLE_COLORS: Record<string, { bg: string; text: string; border: string; dot: string }> = {
-  platform_owner: { bg: 'bg-violet-500/10', text: 'text-violet-300', border: 'border-violet-500/20', dot: 'bg-violet-400' },
-  super_admin:    { bg: 'bg-blue-500/10',   text: 'text-blue-300',   border: 'border-blue-500/20',   dot: 'bg-blue-400' },
-  domain_manager: { bg: 'bg-cyan-500/10',   text: 'text-cyan-300',   border: 'border-cyan-500/20',   dot: 'bg-cyan-400' },
-  analyst:        { bg: 'bg-emerald-500/10', text: 'text-emerald-300', border: 'border-emerald-500/20', dot: 'bg-emerald-400' },
-  standard_employee: { bg: 'bg-white/[0.06]', text: 'text-white/60', border: 'border-white/10', dot: 'bg-white/40' },
-  client_user:    { bg: 'bg-amber-500/10',  text: 'text-amber-300',  border: 'border-amber-500/20',  dot: 'bg-amber-400' },
-  guest_user:     { bg: 'bg-gray-500/10',   text: 'text-gray-400',   border: 'border-gray-500/20',   dot: 'bg-gray-400' },
+  platform_owner: { bg: 'bg-violet-50 dark:bg-violet-500/10', text: 'text-violet-700 dark:text-violet-300', border: 'border-violet-200 dark:border-violet-500/20', dot: 'bg-violet-500 dark:bg-violet-400' },
+  super_admin:    { bg: 'bg-blue-50 dark:bg-blue-500/10',   text: 'text-blue-700 dark:text-blue-300',   border: 'border-blue-200 dark:border-blue-500/20',   dot: 'bg-blue-500 dark:bg-blue-400' },
+  domain_manager: { bg: 'bg-cyan-50 dark:bg-cyan-500/10',   text: 'text-cyan-700 dark:text-cyan-300',   border: 'border-cyan-200 dark:border-cyan-500/20',   dot: 'bg-cyan-500 dark:bg-cyan-400' },
+  hr:             { bg: 'bg-teal-50 dark:bg-teal-500/10',   text: 'text-teal-700 dark:text-teal-300',   border: 'border-teal-200 dark:border-teal-500/20',   dot: 'bg-teal-500 dark:bg-teal-400' },
+  analyst:        { bg: 'bg-emerald-50 dark:bg-emerald-500/10', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-500/20', dot: 'bg-emerald-500 dark:bg-emerald-400' },
+  standard_employee: { bg: 'bg-gray-100 dark:bg-white/[0.06]', text: 'text-gray-700 dark:text-white/60', border: 'border-gray-200 dark:border-white/10', dot: 'bg-gray-400 dark:bg-white/40' },
+  client_user:    { bg: 'bg-amber-50 dark:bg-amber-500/10',  text: 'text-amber-700 dark:text-amber-300',  border: 'border-amber-200 dark:border-amber-500/20',  dot: 'bg-amber-500 dark:bg-amber-400' },
+  guest_user:     { bg: 'bg-gray-100 dark:bg-gray-500/10',   text: 'text-gray-600 dark:text-gray-400',   border: 'border-gray-200 dark:border-gray-500/20',   dot: 'bg-gray-400 dark:bg-gray-400' },
 }
 
-const ROLE_ORDER = ['platform_owner', 'super_admin', 'domain_manager', 'analyst', 'standard_employee', 'client_user', 'guest_user']
+const ROLE_ORDER = ['platform_owner', 'super_admin', 'domain_manager', 'hr', 'analyst', 'standard_employee', 'client_user', 'guest_user']
 
 // Group permissions by category
 const PERMISSION_CATEGORIES = [
@@ -71,12 +72,12 @@ export default function RolesPage() {
         title="Roles & Permissions Matrix"
         description="Browse every role and the permissions it grants. Changes require backend configuration."
         breadcrumbs={[{ label: 'Admin Panel', href: '/admin/users' }, { label: 'Roles' }]}
-        badge={<span className="px-2 py-0.5 rounded-full text-[10px] bg-blue-500/15 text-blue-300 border border-blue-500/20">{ROLE_ORDER.length} roles</span>}
+        badge={<span className="px-2 py-0.5 rounded-full text-[10px] bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/20">{ROLE_ORDER.length} roles</span>}
       >
         <div className="flex gap-5">
           {/* Role list */}
           <div className="w-52 flex-shrink-0 space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-white/30 px-1 mb-3">Select Role</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-white/30 px-1 mb-3">Select Role</p>
             {ROLE_ORDER.map(role => {
               const c = ROLE_COLORS[role]
               const cnt = ROLE_PERMISSIONS[role as Role]?.size ?? 0
@@ -87,7 +88,7 @@ export default function RolesPage() {
                   className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all border ${
                     selected === role
                       ? `${c.bg} ${c.text} ${c.border}`
-                      : 'text-white/50 border-transparent hover:bg-white/[0.04] hover:text-white/70'
+                      : 'text-gray-600 dark:text-white/50 border-transparent hover:bg-gray-100 dark:hover:bg-white/[0.04] hover:text-gray-900 dark:hover:text-white/70'
                   }`}
                 >
                   <div className={`w-2 h-2 rounded-full flex-shrink-0 ${c.dot}`} />
@@ -107,7 +108,7 @@ export default function RolesPage() {
               <div className={`px-3 py-1.5 rounded-xl border text-sm font-semibold ${ROLE_COLORS[selected]?.bg} ${ROLE_COLORS[selected]?.text} ${ROLE_COLORS[selected]?.border}`}>
                 {ROLE_LABELS[selected as Role] ?? selected}
               </div>
-              <span className="text-xs text-white/35">{permCount} permissions granted</span>
+              <span className="text-xs text-adaptive-secondary">{permCount} permissions granted</span>
             </div>
 
             <div className="space-y-4">
@@ -119,11 +120,11 @@ export default function RolesPage() {
                     key={cat.label}
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4"
+                    className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl p-4 shadow-sm dark:shadow-none"
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs font-semibold text-white/70">{cat.label}</p>
-                      <span className="text-[10px] text-white/30">{granted.length}/{cat.perms.length}</span>
+                      <p className="text-xs font-semibold text-adaptive-primary">{cat.label}</p>
+                      <span className="text-[10px] text-adaptive-muted">{granted.length}/{cat.perms.length}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {cat.perms.map(perm => {
@@ -133,11 +134,11 @@ export default function RolesPage() {
                             key={perm}
                             className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] transition-all ${
                               has
-                                ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/15'
-                                : 'bg-white/[0.02] text-white/25 border border-white/[0.05]'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/15'
+                                : 'bg-gray-50 text-gray-400 border border-gray-200 dark:bg-white/[0.02] dark:text-white/25 dark:border-white/[0.05]'
                             }`}
                           >
-                            <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${has ? 'bg-emerald-400' : 'bg-white/15'}`} />
+                            <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${has ? 'bg-emerald-500 dark:bg-emerald-400' : 'bg-gray-300 dark:bg-white/15'}`} />
                             {PERM_LABEL[perm] ?? perm}
                           </div>
                         )

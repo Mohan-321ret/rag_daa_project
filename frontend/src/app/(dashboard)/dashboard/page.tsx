@@ -23,8 +23,8 @@ const STATUS_COLORS: Record<string, string> = { indexed: '#10b981', processing: 
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; color: string }>; label?: string }) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-[#12121f] border border-white/10 rounded-xl p-3 shadow-2xl">
-      <p className="text-xs text-white/50 mb-2">{label}</p>
+    <div className="bg-white dark:bg-[#12121f] border border-gray-200 dark:border-white/10 rounded-xl p-3 shadow-xl">
+      <p className="text-xs text-adaptive-secondary mb-2">{label}</p>
       {payload.map((p) => (
         <p key={p.name} className="text-xs font-medium" style={{ color: p.color }}>{p.name}: {p.value.toLocaleString()}</p>
       ))}
@@ -93,16 +93,16 @@ export default function DashboardPage() {
   ]
   const healthPct = servicesHealthy.length ? Math.round((servicesHealthy.filter(Boolean).length / servicesHealthy.length) * 100) : null
 
-  const changeIcon = (type: string) => type === 'new_document' ? <FileText className="w-3.5 h-3.5 text-blue-400" /> : type === 'new_version' ? <GitBranch className="w-3.5 h-3.5 text-amber-400" /> : <CheckCircle className="w-3.5 h-3.5 text-white/30" />
+  const changeIcon = (type: string) => type === 'new_document' ? <FileText className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" /> : type === 'new_version' ? <GitBranch className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" /> : <CheckCircle className="w-3.5 h-3.5 text-gray-400 dark:text-white/30" />
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold text-white">
+        <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold text-adaptive-primary">
           Enterprise Overview
         </motion.h1>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="text-sm text-white/40 mt-1">
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="text-sm text-adaptive-secondary mt-1">
           Live status across your ingested knowledge base and RAG pipeline
         </motion.p>
       </div>
@@ -124,7 +124,7 @@ export default function DashboardPage() {
         {/* Ingestion volume */}
         <Card className="lg:col-span-2">
           <SectionTitle>Documents Ingested — Last 14 Days</SectionTitle>
-          {docsLoading ? <div className="h-[220px] animate-pulse bg-white/[0.03] rounded-xl" /> : (
+          {docsLoading ? <div className="h-[220px] animate-pulse bg-gray-100 dark:bg-white/[0.03] rounded-xl" /> : (
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={ingestByDay}>
                 <defs>
@@ -133,9 +133,9 @@ export default function DashboardPage() {
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="label" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-gray-200 dark:text-white/[0.06]" />
+                <XAxis dataKey="label" tick={{ fill: 'currentColor', fontSize: 10 }} className="text-gray-500 dark:text-white/40" axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: 'currentColor', fontSize: 10 }} className="text-gray-500 dark:text-white/40" axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip content={<CustomTooltip />} />
                 <Area type="monotone" dataKey="count" name="Documents" stroke="#6366f1" fill="url(#qGrad)" strokeWidth={2} dot={false} />
               </AreaChart>
@@ -162,8 +162,8 @@ export default function DashboardPage() {
                 {routeData.map(d => (
                   <div key={d.name} className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: d.color }} />
-                    <span className="text-[11px] text-white/50 uppercase">{d.name}</span>
-                    <span className="text-[11px] text-white/70 ml-auto font-medium">{d.value}</span>
+                    <span className="text-[11px] text-adaptive-secondary uppercase font-medium">{d.name}</span>
+                    <span className="text-[11px] text-adaptive-primary ml-auto font-semibold">{d.value}</span>
                   </div>
                 ))}
               </div>
@@ -197,8 +197,8 @@ export default function DashboardPage() {
           {departmentData.length === 0 ? <EmptyState icon={<FileText className="w-5 h-5" />} title="No documents yet" /> : (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={departmentData} layout="vertical" margin={{ left: 10 }}>
-                <XAxis type="number" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <YAxis type="category" dataKey="name" width={90} tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <XAxis type="number" tick={{ fill: 'currentColor', fontSize: 10 }} className="text-gray-500 dark:text-white/40" axisLine={false} tickLine={false} allowDecimals={false} />
+                <YAxis type="category" dataKey="name" width={90} tick={{ fill: 'currentColor', fontSize: 10 }} className="text-gray-600 dark:text-white/60" axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="value" name="Documents" fill="#3b82f6" radius={[0, 4, 4, 0]} />
               </BarChart>
@@ -216,15 +216,15 @@ export default function DashboardPage() {
               { label: `LLM (${models?.provider ?? '—'})`, ok: llmReachable },
               { label: 'Folder Watcher', ok: watcher?.running },
             ].map(s => (
-              <div key={s.label} className="flex items-center justify-between py-1.5 border-b border-white/[0.04]">
-                <span className="text-xs text-white/60">{s.label}</span>
-                {s.ok ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <XCircle className="w-4 h-4 text-red-400" />}
+              <div key={s.label} className="flex items-center justify-between py-1.5 border-b border-gray-100 dark:border-white/[0.04]">
+                <span className="text-xs text-adaptive-secondary">{s.label}</span>
+                {s.ok ? <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400" /> : <XCircle className="w-4 h-4 text-red-500 dark:text-red-400" />}
               </div>
             ))}
             {healthPct !== null && (
               <div className="pt-1">
-                <div className="flex justify-between text-[11px] mb-1"><span className="text-white/40">Overall</span><span className="text-white/70 font-medium">{healthPct}%</span></div>
-                <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                <div className="flex justify-between text-[11px] mb-1"><span className="text-adaptive-muted">Overall</span><span className="text-adaptive-primary font-medium">{healthPct}%</span></div>
+                <div className="h-1.5 bg-gray-200 dark:bg-white/[0.06] rounded-full overflow-hidden">
                   <motion.div initial={{ width: 0 }} animate={{ width: `${healthPct}%` }} className={`h-full rounded-full ${healthPct >= 75 ? 'bg-emerald-500' : healthPct >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} />
                 </div>
               </div>
@@ -243,13 +243,13 @@ export default function DashboardPage() {
             <div className="space-y-2">
               {changes!.events.map((e, i) => (
                 <motion.div key={e.event_id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                  className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                  className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.04]">
                   {changeIcon(e.change_type)}
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-white/70 truncate">{e.filename}</p>
-                    <p className="text-[10px] text-white/30 capitalize">{e.change_type.replace(/_/g, ' ')}</p>
+                    <p className="text-xs text-adaptive-primary truncate">{e.filename}</p>
+                    <p className="text-[10px] text-adaptive-muted capitalize">{e.change_type.replace(/_/g, ' ')}</p>
                   </div>
-                  <span className="text-[10px] text-white/25 flex-shrink-0">{formatRelativeTime(e.detected_at)}</span>
+                  <span className="text-[10px] text-adaptive-muted flex-shrink-0">{formatRelativeTime(e.detected_at)}</span>
                 </motion.div>
               ))}
             </div>
@@ -264,12 +264,12 @@ export default function DashboardPage() {
             <div className="space-y-2">
               {docs.slice(0, 6).map((d, i) => (
                 <motion.div key={d.document_id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
-                  className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                  className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.05]">
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-white/80 truncate max-w-[220px]">{d.original_filename}</p>
-                    <p className="text-[10px] text-white/30 mt-0.5">{d.department ?? 'Unassigned'} · {formatRelativeTime(d.upload_date)}</p>
+                    <p className="text-xs font-medium text-adaptive-primary truncate max-w-[220px]">{d.original_filename}</p>
+                    <p className="text-[10px] text-adaptive-muted mt-0.5">{d.department ?? 'Unassigned'} · {formatRelativeTime(d.upload_date)}</p>
                   </div>
-                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${d.processing_status === 'indexed' ? 'bg-emerald-500/15 text-emerald-400' : d.processing_status === 'failed' ? 'bg-red-500/15 text-red-400' : 'bg-blue-500/15 text-blue-400'}`}>
+                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${d.processing_status === 'indexed' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400' : d.processing_status === 'failed' ? 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-400' : 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400'}`}>
                     {d.processing_status}
                   </span>
                 </motion.div>

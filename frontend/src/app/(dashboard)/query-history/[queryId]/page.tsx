@@ -62,13 +62,13 @@ export default function QueryLogDetailPage() {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Link href="/query-history">
-            <button className="flex items-center gap-2 text-white/60 hover:text-white transition-colors">
+            <button className="flex items-center gap-2 text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white transition-colors text-sm font-medium">
               <ArrowLeft className="w-4 h-4" />
               Back
             </button>
           </Link>
         </div>
-        <div className="text-center py-12 text-white/40">Loading query log...</div>
+        <div className="text-center py-12 text-gray-500 dark:text-white/40 text-sm font-medium">Loading query log...</div>
       </div>
     )
   }
@@ -78,31 +78,31 @@ export default function QueryLogDetailPage() {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Link href="/query-history">
-            <button className="flex items-center gap-2 text-white/60 hover:text-white transition-colors">
+            <button className="flex items-center gap-2 text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white transition-colors text-sm font-medium">
               <ArrowLeft className="w-4 h-4" />
               Back
             </button>
           </Link>
         </div>
         <div className="text-center py-12">
-          <p className="text-red-400 font-medium">{error || 'Query log not found'}</p>
+          <p className="text-red-500 dark:text-red-400 font-medium">{error || 'Query log not found'}</p>
         </div>
       </div>
     )
   }
 
   const methodColors: Record<string, string> = {
-    hybrid: 'bg-blue-500/20 text-blue-400',
-    vector: 'bg-violet-500/20 text-violet-400',
-    bm25: 'bg-emerald-500/20 text-emerald-400',
-    graph: 'bg-cyan-500/20 text-cyan-400',
+    hybrid: 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-transparent',
+    vector: 'bg-violet-50 dark:bg-violet-500/20 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-transparent',
+    bm25: 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-transparent',
+    graph: 'bg-cyan-50 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 border border-cyan-200 dark:border-transparent',
   }
 
   const verificationColors: Record<string, string> = {
-    verified: 'bg-emerald-500/20 text-emerald-400',
-    partial: 'bg-yellow-500/20 text-yellow-400',
-    unverified: 'bg-gray-500/20 text-gray-400',
-    failed: 'bg-red-500/20 text-red-400',
+    verified: 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-transparent',
+    partial: 'bg-amber-50 dark:bg-yellow-500/20 text-amber-700 dark:text-yellow-400 border border-amber-200 dark:border-transparent',
+    unverified: 'bg-gray-100 dark:bg-gray-500/20 text-gray-700 dark:text-gray-400 border border-gray-200 dark:border-transparent',
+    failed: 'bg-red-50 dark:bg-red-500/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-transparent',
   }
 
   return (
@@ -111,7 +111,7 @@ export default function QueryLogDetailPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/query-history">
-            <button className="flex items-center gap-2 text-white/60 hover:text-white transition-colors">
+            <button className="flex items-center gap-2 text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white transition-colors text-sm font-medium">
               <ArrowLeft className="w-4 h-4" />
               Back to Query History
             </button>
@@ -119,7 +119,7 @@ export default function QueryLogDetailPage() {
         </div>
         <button
           onClick={downloadAsJson}
-          className="flex items-center gap-2 px-4 py-2 bg-white/[0.05] border border-white/[0.07] rounded-lg text-xs text-white hover:bg-white/[0.08] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.07] rounded-xl text-xs font-semibold text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/[0.08] shadow-sm dark:shadow-none transition-colors"
         >
           <Download className="w-3.5 h-3.5" />
           Export JSON
@@ -130,52 +130,52 @@ export default function QueryLogDetailPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6"
+        className="adaptive-card p-6"
       >
         <div className="flex items-start gap-4 mb-4">
           <div className="flex-shrink-0">
             {log.hallucinations_detected > 0 ? (
-              <AlertTriangle className="w-6 h-6 text-red-400" />
+              <AlertTriangle className="w-6 h-6 text-red-500 dark:text-red-400" />
             ) : (
-              <CheckCircle className="w-6 h-6 text-emerald-400" />
+              <CheckCircle className="w-6 h-6 text-emerald-500 dark:text-emerald-400" />
             )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs text-white/40">{log.query_id}</span>
+              <span className="text-xs text-gray-500 dark:text-white/40 font-mono">{log.query_id}</span>
               <button
                 onClick={() => copyToClipboard(log.query_id, 'queryId')}
-                className="text-white/30 hover:text-white/60 transition-colors"
+                className="text-gray-400 dark:text-white/30 hover:text-gray-600 dark:hover:text-white/60 transition-colors"
               >
                 <Copy className="w-3.5 h-3.5" />
               </button>
             </div>
-            <p className="text-base font-medium text-white mb-4">{log.query_text}</p>
+            <p className="text-base font-semibold text-gray-900 dark:text-white mb-4">{log.query_text}</p>
 
             <div className="flex flex-wrap gap-2 mb-4">
               {log.intent && (
-                <span className="px-3 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full">
+                <span className="px-3 py-1 bg-blue-50 dark:bg-blue-500/20 border border-blue-200 dark:border-transparent text-blue-700 dark:text-blue-400 text-xs font-medium rounded-full">
                   Intent: {log.intent}
                 </span>
               )}
               {log.route && (
-                <span className={`px-3 py-1 text-xs rounded-full ${methodColors[log.route as keyof typeof methodColors]}`}>
+                <span className={`px-3 py-1 text-xs font-medium rounded-full ${methodColors[log.route as keyof typeof methodColors]}`}>
                   Route: {log.route}
                 </span>
               )}
               {log.verification_result && (
-                <span className={`px-3 py-1 text-xs rounded-full ${verificationColors[log.verification_result as keyof typeof verificationColors]}`}>
+                <span className={`px-3 py-1 text-xs font-medium rounded-full ${verificationColors[log.verification_result as keyof typeof verificationColors]}`}>
                   Verification: {log.verification_result}
                 </span>
               )}
               {log.was_rewritten && (
-                <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">
+                <span className="px-3 py-1 bg-amber-50 dark:bg-yellow-500/20 border border-amber-200 dark:border-transparent text-amber-700 dark:text-yellow-400 text-xs font-medium rounded-full">
                   Rewritten
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-4 text-xs text-white/40">
+            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-white/40 font-medium flex-wrap">
               <span>{formatDateTime(log.created_at)}</span>
               {log.user_id && <span>User: {log.user_id}</span>}
               {log.user_role && <span>Role: {log.user_role}</span>}
@@ -191,10 +191,10 @@ export default function QueryLogDetailPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6"
+          className="adaptive-card p-6"
         >
-          <h3 className="text-sm font-semibold text-white mb-3">Answer</h3>
-          <p className="text-sm text-white/70 whitespace-pre-wrap">{log.answer_text}</p>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Answer</h3>
+          <p className="text-sm text-gray-800 dark:text-white/80 whitespace-pre-wrap leading-relaxed">{log.answer_text}</p>
         </motion.div>
       )}
 
@@ -206,14 +206,14 @@ export default function QueryLogDetailPage() {
         className="grid grid-cols-1 md:grid-cols-4 gap-4"
       >
         {[
-          { label: 'Total Latency', value: log.latency_ms ? formatLatency(log.latency_ms) : 'N/A', color: 'text-blue-400' },
-          { label: 'Retrieval Latency', value: log.retrieval_latency_ms ? formatLatency(log.retrieval_latency_ms) : 'N/A', color: 'text-violet-400' },
-          { label: 'Reranking Latency', value: log.reranking_latency_ms ? formatLatency(log.reranking_latency_ms) : 'N/A', color: 'text-cyan-400' },
-          { label: 'LLM Latency', value: log.llm_latency_ms ? formatLatency(log.llm_latency_ms) : 'N/A', color: 'text-emerald-400' },
+          { label: 'Total Latency', value: log.latency_ms ? formatLatency(log.latency_ms) : 'N/A', color: 'text-blue-600 dark:text-blue-400' },
+          { label: 'Retrieval Latency', value: log.retrieval_latency_ms ? formatLatency(log.retrieval_latency_ms) : 'N/A', color: 'text-violet-600 dark:text-violet-400' },
+          { label: 'Reranking Latency', value: log.reranking_latency_ms ? formatLatency(log.reranking_latency_ms) : 'N/A', color: 'text-cyan-600 dark:text-cyan-400' },
+          { label: 'LLM Latency', value: log.llm_latency_ms ? formatLatency(log.llm_latency_ms) : 'N/A', color: 'text-emerald-600 dark:text-emerald-400' },
         ].map((m) => (
-          <div key={m.label} className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4">
+          <div key={m.label} className="adaptive-card p-4">
             <p className={`text-lg font-bold ${m.color}`}>{m.value}</p>
-            <p className="text-[11px] text-white/40 mt-1">{m.label}</p>
+            <p className="text-[11px] text-gray-500 dark:text-white/40 font-medium mt-1">{m.label}</p>
           </div>
         ))}
       </motion.div>
@@ -224,34 +224,34 @@ export default function QueryLogDetailPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6"
+          className="adaptive-card p-6"
         >
-          <h3 className="text-sm font-semibold text-white mb-4">Retrieval Details</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Retrieval Details</h3>
           <div className="space-y-3">
             <div>
-              <p className="text-xs text-white/40 mb-1">Retrieved Chunks</p>
-              <p className="text-lg font-semibold text-white">{log.retrieved_chunks}</p>
+              <p className="text-xs text-gray-500 dark:text-white/40 font-medium mb-1">Retrieved Chunks</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">{log.retrieved_chunks}</p>
             </div>
             <div>
-              <p className="text-xs text-white/40 mb-1">Authorized Chunks</p>
-              <p className="text-lg font-semibold text-white">{log.authorized_chunk_ids.length}</p>
+              <p className="text-xs text-gray-500 dark:text-white/40 font-medium mb-1">Authorized Chunks</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">{log.authorized_chunk_ids.length}</p>
             </div>
             <div>
-              <p className="text-xs text-white/40 mb-1">Retrieval Score</p>
-              <p className="text-lg font-semibold text-white">
+              <p className="text-xs text-gray-500 dark:text-white/40 font-medium mb-1">Retrieval Score</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">
                 {log.retrieval_score !== undefined ? log.retrieval_score.toFixed(3) : 'N/A'}
               </p>
             </div>
             <div>
-              <p className="text-xs text-white/40 mb-1">Reranking Score</p>
-              <p className="text-lg font-semibold text-white">
+              <p className="text-xs text-gray-500 dark:text-white/40 font-medium mb-1">Reranking Score</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">
                 {log.reranking_score !== undefined ? log.reranking_score.toFixed(3) : 'N/A'}
               </p>
             </div>
             {log.retrieval_strategy && (
               <div>
-                <p className="text-xs text-white/40 mb-1">Strategy</p>
-                <p className="text-sm text-white capitalize">{log.retrieval_strategy}</p>
+                <p className="text-xs text-gray-500 dark:text-white/40 font-medium mb-1">Strategy</p>
+                <p className="text-sm text-gray-800 dark:text-white capitalize font-medium">{log.retrieval_strategy}</p>
               </div>
             )}
           </div>
@@ -261,18 +261,18 @@ export default function QueryLogDetailPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6"
+          className="adaptive-card p-6"
         >
-          <h3 className="text-sm font-semibold text-white mb-4">Verification & Quality</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Verification & Quality</h3>
           <div className="space-y-3">
             <div>
-              <p className="text-xs text-white/40 mb-1">Confidence Score</p>
+              <p className="text-xs text-gray-500 dark:text-white/40 font-medium mb-1">Confidence Score</p>
               <div className="flex items-center gap-2">
-                <p className="text-lg font-semibold text-white">
+                <p className="text-lg font-semibold text-gray-900 dark:text-white">
                   {log.confidence_score !== undefined ? (log.confidence_score * 100).toFixed(1) : 'N/A'}%
                 </p>
                 {log.confidence_score !== undefined && (
-                  <div className="flex-1 bg-white/[0.05] rounded-full h-2">
+                  <div className="flex-1 bg-gray-200 dark:bg-white/[0.05] rounded-full h-2">
                     <div
                       className="bg-blue-500 h-2 rounded-full"
                       style={{ width: `${log.confidence_score * 100}%` }}
@@ -282,18 +282,18 @@ export default function QueryLogDetailPage() {
               </div>
             </div>
             <div>
-              <p className="text-xs text-white/40 mb-1">Hallucinations Detected</p>
-              <p className={`text-lg font-semibold ${log.hallucinations_detected > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+              <p className="text-xs text-gray-500 dark:text-white/40 font-medium mb-1">Hallucinations Detected</p>
+              <p className={`text-lg font-semibold ${log.hallucinations_detected > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                 {log.hallucinations_detected}
               </p>
             </div>
             <div>
-              <p className="text-xs text-white/40 mb-1">Citations</p>
-              <p className="text-lg font-semibold text-white">{log.citation_count}</p>
+              <p className="text-xs text-gray-500 dark:text-white/40 font-medium mb-1">Citations</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">{log.citation_count}</p>
             </div>
             <div>
-              <p className="text-xs text-white/40 mb-1">Grounded</p>
-              <p className={`text-sm font-semibold ${log.is_grounded ? 'text-emerald-400' : 'text-gray-400'}`}>
+              <p className="text-xs text-gray-500 dark:text-white/40 font-medium mb-1">Grounded</p>
+              <p className={`text-sm font-semibold ${log.is_grounded ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'}`}>
                 {log.is_grounded ? 'Yes' : log.is_grounded === false ? 'No' : 'Unknown'}
               </p>
             </div>
@@ -306,16 +306,16 @@ export default function QueryLogDetailPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6"
+        className="adaptive-card p-6"
       >
-        <h3 className="text-sm font-semibold text-white mb-4">Chunk Information</h3>
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Chunk Information</h3>
         <div className="space-y-4">
           {log.retrieved_chunk_ids.length > 0 && (
             <div>
-              <p className="text-xs text-white/40 mb-2">Retrieved Chunk IDs</p>
+              <p className="text-xs text-gray-500 dark:text-white/40 font-medium mb-2">Retrieved Chunk IDs</p>
               <div className="flex flex-wrap gap-2">
                 {log.retrieved_chunk_ids.map(id => (
-                  <span key={id} className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
+                  <span key={id} className="text-xs bg-blue-50 dark:bg-blue-500/20 border border-blue-200 dark:border-transparent text-blue-700 dark:text-blue-400 font-mono px-2 py-1 rounded">
                     {id}
                   </span>
                 ))}
@@ -324,10 +324,10 @@ export default function QueryLogDetailPage() {
           )}
           {log.authorized_chunk_ids.length > 0 && (
             <div>
-              <p className="text-xs text-white/40 mb-2">Authorized Chunk IDs</p>
+              <p className="text-xs text-gray-500 dark:text-white/40 font-medium mb-2">Authorized Chunk IDs</p>
               <div className="flex flex-wrap gap-2">
                 {log.authorized_chunk_ids.map(id => (
-                  <span key={id} className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded">
+                  <span key={id} className="text-xs bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-transparent text-emerald-700 dark:text-emerald-400 font-mono px-2 py-1 rounded">
                     {id}
                   </span>
                 ))}
@@ -343,10 +343,10 @@ export default function QueryLogDetailPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6"
+          className="adaptive-card p-6"
         >
-          <h3 className="text-sm font-semibold text-white mb-3">Verification Details</h3>
-          <p className="text-sm text-white/70 whitespace-pre-wrap">{log.verification_details}</p>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Verification Details</h3>
+          <p className="text-sm text-gray-800 dark:text-white/80 whitespace-pre-wrap leading-relaxed">{log.verification_details}</p>
         </motion.div>
       )}
 
@@ -356,10 +356,10 @@ export default function QueryLogDetailPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6"
+          className="adaptive-card p-6"
         >
-          <h3 className="text-sm font-semibold text-white mb-3">Reranking Explanation</h3>
-          <p className="text-sm text-white/70 whitespace-pre-wrap">{log.reranking_explanation}</p>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Reranking Explanation</h3>
+          <p className="text-sm text-gray-800 dark:text-white/80 whitespace-pre-wrap leading-relaxed">{log.reranking_explanation}</p>
         </motion.div>
       )}
 
@@ -369,18 +369,18 @@ export default function QueryLogDetailPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6"
+          className="adaptive-card p-6"
         >
-          <h3 className="text-sm font-semibold text-white mb-3">Associated Ticket</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Associated Ticket</h3>
           <div className="space-y-2">
             <div>
-              <p className="text-xs text-white/40 mb-1">Ticket ID</p>
-              <p className="text-sm text-white font-mono">{log.ticket_id}</p>
+              <p className="text-xs text-gray-500 dark:text-white/40 font-medium mb-1">Ticket ID</p>
+              <p className="text-sm text-gray-900 dark:text-white font-mono">{log.ticket_id}</p>
             </div>
             {log.ticket_status && (
               <div>
-                <p className="text-xs text-white/40 mb-1">Status</p>
-                <p className="text-sm text-white capitalize">{log.ticket_status}</p>
+                <p className="text-xs text-gray-500 dark:text-white/40 font-medium mb-1">Status</p>
+                <p className="text-sm text-gray-800 dark:text-white capitalize font-medium">{log.ticket_status}</p>
               </div>
             )}
           </div>
@@ -393,18 +393,18 @@ export default function QueryLogDetailPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6"
+          className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-2xl p-6"
         >
-          <h3 className="text-sm font-semibold text-red-400 mb-3">⚠️ Access Violations (Sensitive)</h3>
+          <h3 className="text-sm font-semibold text-red-600 dark:text-red-400 mb-3">⚠️ Access Violations (Sensitive)</h3>
           <div className="space-y-2">
             <div>
-              <p className="text-xs text-white/40 mb-1">Unauthorized Chunk Access Attempts</p>
-              <p className="text-lg font-semibold text-red-400">{log.chunk_access_violations}</p>
+              <p className="text-xs text-gray-600 dark:text-white/40 font-medium mb-1">Unauthorized Chunk Access Attempts</p>
+              <p className="text-lg font-semibold text-red-600 dark:text-red-400">{log.chunk_access_violations}</p>
             </div>
             {log.access_violation_details && (
               <div>
-                <p className="text-xs text-white/40 mb-1">Details</p>
-                <p className="text-sm text-red-300/70 whitespace-pre-wrap font-mono text-xs">
+                <p className="text-xs text-gray-600 dark:text-white/40 font-medium mb-1">Details</p>
+                <p className="text-sm text-red-700 dark:text-red-300/70 whitespace-pre-wrap font-mono text-xs">
                   {log.access_violation_details}
                 </p>
               </div>
@@ -419,10 +419,10 @@ export default function QueryLogDetailPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6"
+          className="adaptive-card p-6"
         >
-          <h3 className="text-sm font-semibold text-white mb-3">Model Information</h3>
-          <p className="text-sm text-white">{log.model_used}</p>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Model Information</h3>
+          <p className="text-sm text-gray-800 dark:text-white font-medium">{log.model_used}</p>
         </motion.div>
       )}
     </div>

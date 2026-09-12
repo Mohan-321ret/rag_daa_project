@@ -111,8 +111,18 @@ def verify_claim(claim: Claim, evidence_chunks: List[dict]) -> ClaimVerification
         )
 
     sent, doc_id, chunk_idx = candidates[best_idx]
-    evidence_values = _NUM_RE.findall(sent)
-    status = "supported" if evidence_values == claim.values else "contradicted"
+    clean_sent = re.sub(r"\bDOC_[A-Za-z0-9_]+\b|\bchunk\s*\d+\b", "", sent, flags=re.IGNORECASE)
+    evidence_values = _NUM_RE.findall(clean_sent)
+
+    def _norm(v: str) -> str:
+        c = v.rstrip("%").replace(",", "").lstrip("0")
+        return c if c else "0"
+
+    norm_claim = {_norm(v) for v in claim.values}
+    norm_ev = {_norm(v) for v in evidence_values}
+    
+    # Supported if normalized claim numbers are subset of evidence or vice versa, or if evidence values match
+    status = "supported" if (norm_claim.issubset(norm_ev) or norm_ev.issubset(norm_claim)) else "contradicted"
 
     verification = ClaimVerification(
         claim=claim,

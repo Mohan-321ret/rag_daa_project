@@ -68,7 +68,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#080810] flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#080810] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
@@ -92,23 +92,23 @@ export default function LoginPage() {
           >
             <Brain className="w-7 h-7 text-white" />
           </motion.div>
-          <h1 className="text-2xl font-bold text-white">DAA-RAG Platform</h1>
-          <p className="text-sm text-white/40 mt-1">Enterprise Knowledge Intelligence</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">DAA-RAG Platform</h1>
+          <p className="text-sm text-gray-500 dark:text-white/40 mt-1">Enterprise Knowledge Intelligence</p>
         </div>
 
         {/* Card */}
-        <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-8 backdrop-blur-xl">
-          <div className="flex items-center gap-1 bg-white/[0.03] border border-white/[0.07] rounded-xl p-1 mb-6">
+        <div className="bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] rounded-2xl p-8 backdrop-blur-xl shadow-xl dark:shadow-none">
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/[0.03] border border-gray-200/80 dark:border-white/[0.07] rounded-xl p-1 mb-6">
             {(['login', 'register'] as const).map(m => (
               <button key={m} type="button" onClick={() => { setMode(m); setError(null) }}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-medium capitalize transition-all ${mode === m ? 'bg-blue-600 text-white' : 'text-white/40 hover:text-white/70'}`}>
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium capitalize transition-all ${mode === m ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 dark:text-white/40 hover:text-gray-900 dark:hover:text-white/70'}`}>
                 {m === 'login' ? 'Sign In' : 'Create Account'}
               </button>
             ))}
           </div>
 
           {error && (
-            <div className="mb-4 px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">
+            <div className="mb-4 px-3 py-2.5 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-xs text-red-600 dark:text-red-400">
               {error}
             </div>
           )}
@@ -116,42 +116,42 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {mode === 'register' && (
               <div>
-                <label className="text-xs font-medium text-white/60 mb-1.5 block">Full name</label>
+                <label className="text-xs font-medium text-gray-700 dark:text-white/60 mb-1.5 block">Full name</label>
                 <input
                   {...register('fullName')}
                   type="text"
                   placeholder="Sarah Chen"
-                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 outline-none focus:border-blue-500/50 focus:bg-white/[0.06] transition-all"
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 dark:bg-white/[0.04] dark:border-white/[0.08] dark:text-white dark:placeholder:text-white/20 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500/50 focus:bg-white transition-all"
                 />
               </div>
             )}
 
             <div>
-              <label className="text-xs font-medium text-white/60 mb-1.5 block">Email address</label>
+              <label className="text-xs font-medium text-gray-700 dark:text-white/60 mb-1.5 block">Email address</label>
               <input
                 {...register('email')}
                 type="email"
                 placeholder="sarah.chen@enterprise.com"
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 outline-none focus:border-blue-500/50 focus:bg-white/[0.06] transition-all"
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 dark:bg-white/[0.04] dark:border-white/[0.08] dark:text-white dark:placeholder:text-white/20 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500/50 focus:bg-white transition-all"
               />
-              {errors.email && <p className="text-[11px] text-red-400 mt-1">{errors.email.message}</p>}
+              {errors.email && <p className="text-[11px] text-red-500 dark:text-red-400 mt-1">{errors.email.message}</p>}
             </div>
 
             <div>
-              <label className="text-xs font-medium text-white/60 mb-1.5 block">Password</label>
+              <label className="text-xs font-medium text-gray-700 dark:text-white/60 mb-1.5 block">Password</label>
               <div className="relative">
                 <input
                   {...register('password')}
                   type={showPass ? 'text' : 'password'}
                   placeholder="••••••••••••"
-                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 outline-none focus:border-blue-500/50 focus:bg-white/[0.06] transition-all pr-10"
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 dark:bg-white/[0.04] dark:border-white/[0.08] dark:text-white dark:placeholder:text-white/20 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500/50 focus:bg-white transition-all pr-10"
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-white/30 dark:hover:text-white/60 transition-colors">
                   {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {errors.password && <p className="text-[11px] text-red-400 mt-1">{errors.password.message}</p>}
+              {errors.password && <p className="text-[11px] text-red-500 dark:text-red-400 mt-1">{errors.password.message}</p>}
             </div>
 
             <motion.button
@@ -168,7 +168,7 @@ export default function LoginPage() {
           <GoogleSignInButton onCredential={onGoogleCredential} />
         </div>
 
-        <p className="text-center text-[11px] text-white/25 mt-6">
+        <p className="text-center text-[11px] text-gray-500 dark:text-white/25 mt-6">
           Enterprise Knowledge Intelligence Platform
         </p>
       </motion.div>

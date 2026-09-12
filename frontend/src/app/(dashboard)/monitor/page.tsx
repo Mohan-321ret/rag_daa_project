@@ -43,40 +43,40 @@ export default function MonitorPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="System Monitor" description="Real-time infrastructure health and performance metrics">
-        <button onClick={handleRefresh} className={`flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] text-xs text-white/60 hover:text-white/80 transition-all ${refreshing ? 'opacity-60' : ''}`}>
+        <button onClick={handleRefresh} className={`flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] text-xs text-gray-700 dark:text-white/60 hover:text-gray-900 dark:hover:text-white/80 bg-white dark:bg-transparent shadow-sm dark:shadow-none transition-all ${refreshing ? 'opacity-60' : ''}`}>
           <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
         </button>
       </PageHeader>
 
       {/* System Health Banner */}
-      <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3">
-        <CheckCircle className="w-5 h-5 text-emerald-400" />
+      <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-3">
+        <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
         <div>
-          <p className="text-sm font-semibold text-white">All Systems Operational</p>
-          <p className="text-xs text-white/50">8/8 services running · Last checked: just now</p>
+          <p className="text-sm font-semibold text-gray-900 dark:text-white">All Systems Operational</p>
+          <p className="text-xs text-gray-500 dark:text-white/50">8/8 services running · Last checked: just now</p>
         </div>
         <div className="ml-auto text-right">
-          <p className="text-2xl font-bold text-emerald-400">98.7%</p>
-          <p className="text-xs text-white/40">Overall Uptime</p>
+          <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">98.7%</p>
+          <p className="text-xs text-gray-500 dark:text-white/40 font-medium">Overall Uptime</p>
         </div>
       </div>
 
       {/* Resource Gauges */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'CPU Usage', value: Math.round(latest.cpu), unit: '%', icon: <Cpu className="w-4 h-4" />, color: latest.cpu > 80 ? 'text-red-400' : latest.cpu > 60 ? 'text-amber-400' : 'text-emerald-400', bar: latest.cpu > 80 ? 'bg-red-500' : latest.cpu > 60 ? 'bg-amber-500' : 'bg-emerald-500' },
-          { label: 'Memory', value: Math.round(latest.memory), unit: '%', icon: <MemoryStick className="w-4 h-4" />, color: latest.memory > 80 ? 'text-red-400' : latest.memory > 60 ? 'text-amber-400' : 'text-blue-400', bar: latest.memory > 80 ? 'bg-red-500' : latest.memory > 60 ? 'bg-amber-500' : 'bg-blue-500' },
-          { label: 'Storage', value: Math.round(latest.storage), unit: '%', icon: <HardDrive className="w-4 h-4" />, color: 'text-violet-400', bar: 'bg-violet-500' },
-          { label: 'Embed Queue', value: latest.embeddingQueue, unit: ' jobs', icon: <Activity className="w-4 h-4" />, color: 'text-cyan-400', bar: 'bg-cyan-500' },
+          { label: 'CPU Usage', value: Math.round(latest.cpu), unit: '%', icon: <Cpu className="w-4 h-4" />, color: latest.cpu > 80 ? 'text-red-600 dark:text-red-400' : latest.cpu > 60 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400', bar: latest.cpu > 80 ? 'bg-red-500' : latest.cpu > 60 ? 'bg-amber-500' : 'bg-emerald-500' },
+          { label: 'Memory', value: Math.round(latest.memory), unit: '%', icon: <MemoryStick className="w-4 h-4" />, color: latest.memory > 80 ? 'text-red-600 dark:text-red-400' : latest.memory > 60 ? 'text-amber-600 dark:text-amber-400' : 'text-blue-600 dark:text-blue-400', bar: latest.memory > 80 ? 'bg-red-500' : latest.memory > 60 ? 'bg-amber-500' : 'bg-blue-500' },
+          { label: 'Storage', value: Math.round(latest.storage), unit: '%', icon: <HardDrive className="w-4 h-4" />, color: 'text-violet-600 dark:text-violet-400', bar: 'bg-violet-500' },
+          { label: 'Embed Queue', value: latest.embeddingQueue, unit: ' jobs', icon: <Activity className="w-4 h-4" />, color: 'text-cyan-600 dark:text-cyan-400', bar: 'bg-cyan-500' },
         ].map((m, i) => (
           <motion.div key={m.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-            className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4">
+            className="bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.07] rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <div className={`${m.color} opacity-70`}>{m.icon}</div>
-              <span className={`text-2xl font-bold ${m.color}`}>{m.value}<span className="text-sm font-normal text-white/30">{m.unit}</span></span>
+              <div className={`${m.color} opacity-80`}>{m.icon}</div>
+              <span className={`text-2xl font-bold ${m.color}`}>{m.value}<span className="text-sm font-normal text-gray-400 dark:text-white/30">{m.unit}</span></span>
             </div>
-            <p className="text-[11px] text-white/40 mb-2">{m.label}</p>
-            <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+            <p className="text-[11px] text-gray-500 dark:text-white/40 mb-2 font-medium">{m.label}</p>
+            <div className="h-1.5 bg-gray-200 dark:bg-white/[0.06] rounded-full overflow-hidden">
               <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(typeof m.value === 'number' ? m.value : 50, 100)}%` }} transition={{ duration: 0.8, delay: i * 0.1 }}
                 className={`h-full rounded-full ${m.bar}`} />
             </div>
@@ -86,7 +86,7 @@ export default function MonitorPage() {
 
       {/* Charts */}
       <Card>
-        <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-4">Resource Usage — Last 24 Hours</h3>
+        <h3 className="text-xs font-semibold text-gray-500 dark:text-white/50 uppercase tracking-wider mb-4">Resource Usage — Last 24 Hours</h3>
         <ResponsiveContainer width="100%" height={200}>
           <AreaChart data={chartData}>
             <defs>
@@ -97,10 +97,10 @@ export default function MonitorPage() {
                 </linearGradient>
               ))}
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-            <XAxis dataKey="time" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} domain={[0, 100]} tickFormatter={v => `${v}%`} />
-            <Tooltip contentStyle={{ background: '#12121f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-gray-200 dark:text-white/[0.06]" />
+            <XAxis dataKey="time" tick={{ fill: 'currentColor', fontSize: 10 }} className="text-gray-500 dark:text-white/40" axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: 'currentColor', fontSize: 10 }} className="text-gray-500 dark:text-white/40" axisLine={false} tickLine={false} domain={[0, 100]} tickFormatter={v => `${v}%`} />
+            <Tooltip contentStyle={{ background: 'var(--card-bg, #ffffff)', border: '1px solid var(--card-border, #e2e8f0)', borderRadius: 12 }} />
             <Area type="monotone" dataKey="cpu" name="CPU" stroke="#3b82f6" fill="url(#cpu)" strokeWidth={2} dot={false} />
             <Area type="monotone" dataKey="memory" name="Memory" stroke="#8b5cf6" fill="url(#mem)" strokeWidth={2} dot={false} />
             <Area type="monotone" dataKey="storage" name="Storage" stroke="#10b981" fill="url(#stor)" strokeWidth={2} dot={false} />
@@ -111,15 +111,15 @@ export default function MonitorPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Services */}
         <Card>
-          <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-4">Service Status</h3>
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-white/50 uppercase tracking-wider mb-4">Service Status</h3>
           <div className="space-y-2">
             {services.map((svc, i) => (
               <motion.div key={svc.name} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}
-                className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/[0.02] transition-colors">
-                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${svc.status === 'active' ? 'bg-emerald-400' : 'bg-blue-400 animate-pulse'}`} />
-                <span className="text-xs text-white/70 flex-1">{svc.name}</span>
-                <span className="text-[11px] text-white/40 font-mono">{svc.latency}</span>
-                <span className="text-[11px] text-white/40">{svc.uptime}</span>
+                className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${svc.status === 'active' ? 'bg-emerald-500' : 'bg-blue-500 animate-pulse'}`} />
+                <span className="text-xs text-gray-800 dark:text-white/70 flex-1 font-medium">{svc.name}</span>
+                <span className="text-[11px] text-gray-500 dark:text-white/40 font-mono">{svc.latency}</span>
+                <span className="text-[11px] text-gray-500 dark:text-white/40">{svc.uptime}</span>
                 <StatusBadge status={svc.status} />
               </motion.div>
             ))}
@@ -128,22 +128,22 @@ export default function MonitorPage() {
 
         {/* Errors */}
         <Card>
-          <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-4">Recent Alerts</h3>
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-white/50 uppercase tracking-wider mb-4">Recent Alerts</h3>
           <div className="space-y-3">
             {recentErrors.map((err, i) => (
               <motion.div key={err.id} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                className={`p-3 rounded-xl border ${err.severity === 'warning' ? 'border-amber-500/20 bg-amber-500/5' : 'border-blue-500/20 bg-blue-500/5'}`}>
+                className={`p-3 rounded-xl border ${err.severity === 'warning' ? 'border-amber-200 bg-amber-50 dark:border-amber-500/20 dark:bg-amber-500/5' : 'border-blue-200 bg-blue-50 dark:border-blue-500/20 dark:bg-blue-500/5'}`}>
                 <div className="flex items-center gap-2 mb-1">
-                  {err.severity === 'warning' ? <AlertTriangle className="w-3.5 h-3.5 text-amber-400" /> : <Activity className="w-3.5 h-3.5 text-blue-400" />}
-                  <span className="text-xs font-semibold text-white/70">{err.service}</span>
-                  <span className="text-[10px] text-white/30 ml-auto">{err.time}</span>
+                  {err.severity === 'warning' ? <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> : <Activity className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />}
+                  <span className="text-xs font-semibold text-gray-900 dark:text-white/70">{err.service}</span>
+                  <span className="text-[10px] text-gray-400 dark:text-white/30 ml-auto">{err.time}</span>
                 </div>
-                <p className="text-[11px] text-white/50">{err.message}</p>
+                <p className="text-[11px] text-gray-600 dark:text-white/50">{err.message}</p>
               </motion.div>
             ))}
-            <div className="p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 flex items-center gap-2">
-              <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-              <p className="text-[11px] text-emerald-400/70">No critical errors in the last 24 hours</p>
+            <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-500/20 dark:bg-emerald-500/5 flex items-center gap-2">
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <p className="text-[11px] text-emerald-700 dark:text-emerald-400/70 font-medium">No critical errors in the last 24 hours</p>
             </div>
           </div>
         </Card>

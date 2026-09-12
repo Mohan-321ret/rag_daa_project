@@ -21,19 +21,19 @@ function MetricCard({ label, value, unit, icon: Icon, color, description }: Metr
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-5"
+      className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl p-5 shadow-sm"
     >
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs text-white/40">{label}</p>
+        <p className="text-xs text-gray-500 dark:text-white/40">{label}</p>
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color}`}>
           <Icon className="w-4 h-4" />
         </div>
       </div>
-      <p className="text-2xl font-bold text-white">
+      <p className="text-2xl font-bold text-gray-900 dark:text-white">
         {value === null || value === undefined ? '—' : value}
-        {unit && <span className="text-sm text-white/40 font-normal ml-1">{unit}</span>}
+        {unit && <span className="text-sm text-gray-500 dark:text-white/40 font-normal ml-1">{unit}</span>}
       </p>
-      {description && <p className="text-[11px] text-white/30 mt-1.5">{description}</p>}
+      {description && <p className="text-[11px] text-gray-400 dark:text-white/30 mt-1.5">{description}</p>}
     </motion.div>
   )
 }
@@ -43,13 +43,13 @@ function SimpleBarChart({ data, label }: { data: Record<string, number>; label: 
   const entries = Object.entries(data)
   const max = Math.max(...entries.map(([, v]) => v), 1)
   return (
-    <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-5">
-      <p className="text-xs font-semibold text-white/60 mb-4">{label}</p>
+    <div className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl p-5 shadow-sm">
+      <p className="text-xs font-semibold text-gray-800 dark:text-white/60 mb-4">{label}</p>
       <div className="space-y-2.5">
         {entries.map(([key, val]) => (
           <div key={key} className="flex items-center gap-3">
-            <span className="text-[11px] text-white/40 w-24 truncate">{key}</span>
-            <div className="flex-1 h-5 bg-white/[0.04] rounded-full overflow-hidden">
+            <span className="text-[11px] text-gray-500 dark:text-white/40 w-24 truncate">{key}</span>
+            <div className="flex-1 h-5 bg-gray-100 dark:bg-white/[0.04] rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${(val / max) * 100}%` }}
@@ -57,7 +57,7 @@ function SimpleBarChart({ data, label }: { data: Record<string, number>; label: 
                 className="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full"
               />
             </div>
-            <span className="text-[11px] text-white/50 w-10 text-right font-mono">{val}</span>
+            <span className="text-[11px] text-gray-600 dark:text-white/50 w-10 text-right font-mono">{val}</span>
           </div>
         ))}
       </div>
@@ -88,10 +88,10 @@ export default function QueryAnalyticsPage() {
         description="Volume, latency, confidence, and retrieval performance over time."
         breadcrumbs={[{ label: 'Admin Panel', href: '/admin/users' }, { label: 'Query Analytics' }]}
         action={
-          <div className="flex items-center gap-1 bg-white/[0.03] border border-white/[0.07] rounded-xl p-1">
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.07] rounded-xl p-1">
             {[7, 30, 90].map(d => (
               <button key={d} onClick={() => setWindowDays(d)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${windowDays === d ? 'bg-blue-600 text-white' : 'text-white/40 hover:text-white/70'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${windowDays === d ? 'bg-blue-600 text-white' : 'text-gray-500 dark:text-white/40 hover:text-gray-900 dark:hover:text-white/70'}`}>
                 {d}d
               </button>
             ))}
@@ -99,7 +99,7 @@ export default function QueryAnalyticsPage() {
         }
       >
         {loading ? (
-          <div className="flex items-center justify-center py-20 gap-2 text-white/40">
+          <div className="flex items-center justify-center py-20 gap-2 text-gray-400 dark:text-white/40">
             <Loader2 className="w-5 h-5 animate-spin" />
             <span className="text-sm">Loading analytics…</span>
           </div>
@@ -108,25 +108,25 @@ export default function QueryAnalyticsPage() {
             {/* Key metrics */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard label="Total Queries" value={metrics?.total_queries ?? '—'} icon={BarChart3}
-                color="bg-blue-500/15 text-blue-400" description={`Last ${window} days`} />
+                color="bg-blue-500/15 text-blue-500 dark:text-blue-400" description={`Last ${windowDays} days`} />
               <MetricCard label="User Satisfaction" value={fmt(metrics?.user_satisfaction)} icon={TrendingUp}
-                color="bg-emerald-500/15 text-emerald-400" description="👍 feedback rate" />
+                color="bg-emerald-500/15 text-emerald-500 dark:text-emerald-400" description="👍 feedback rate" />
               <MetricCard label="Avg Latency" value={metrics?.avg_latency_ms ? Math.round(metrics.avg_latency_ms) : null}
-                unit="ms" icon={Clock} color="bg-amber-500/15 text-amber-400" description="Mean response time" />
+                unit="ms" icon={Clock} color="bg-amber-500/15 text-amber-500 dark:text-amber-400" description="Mean response time" />
               <MetricCard label="Hallucination Rate" value={fmt(metrics?.hallucination_rate)} icon={Activity}
-                color="bg-red-500/15 text-red-400" description="Detected hallucinations" />
+                color="bg-red-500/15 text-red-500 dark:text-red-400" description="Detected hallucinations" />
             </div>
 
             {/* Phase 15 metrics */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard label="Ticket Rate" value={fmt(metrics?.ticket_generation_rate)} icon={Zap}
-                color="bg-rose-500/15 text-rose-400" description="Queries → tickets" />
+                color="bg-rose-500/15 text-rose-500 dark:text-rose-400" description="Queries → tickets" />
               <MetricCard label="Resolution Rate" value={fmt(metrics?.ticket_resolution_rate)} icon={Activity}
-                color="bg-teal-500/15 text-teal-400" description="Tickets resolved" />
+                color="bg-teal-500/15 text-teal-500 dark:text-teal-400" description="Tickets resolved" />
               <MetricCard label="Routing Accuracy" value={fmt(metrics?.domain_routing_accuracy)} icon={TrendingUp}
-                color="bg-cyan-500/15 text-cyan-400" description="Correct domain routing" />
+                color="bg-cyan-500/15 text-cyan-500 dark:text-cyan-400" description="Correct domain routing" />
               <MetricCard label="Avg Resolution" value={metrics?.avg_ticket_resolution_time_hours ? metrics.avg_ticket_resolution_time_hours.toFixed(1) : null}
-                unit="hrs" icon={Clock} color="bg-violet-500/15 text-violet-400" description="Ticket resolution time" />
+                unit="hrs" icon={Clock} color="bg-violet-500/15 text-violet-500 dark:text-violet-400" description="Ticket resolution time" />
             </div>
 
             {/* Retrieval by route */}
@@ -140,7 +140,7 @@ export default function QueryAnalyticsPage() {
             )}
 
             {!metrics && (
-              <div className="text-center py-10 text-white/30 text-sm">
+              <div className="text-center py-10 text-gray-400 dark:text-white/30 text-sm">
                 Could not load analytics. Ensure the backend is running and connected.
               </div>
             )}

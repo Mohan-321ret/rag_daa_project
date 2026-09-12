@@ -22,6 +22,8 @@ from app.core.config import settings
 _SENT_SPLIT_RE = re.compile(r"(?<=[.!?])\s+|\n+")
 _NUM_RE = re.compile(r"\d+(?:[.,]\d+)?%?")
 _CITATION_RE = re.compile(r"\[(DOC_[A-Za-z0-9_]+)\]")
+_CHUNK_REF_RE = re.compile(r"\bchunk\s*\d+\b", re.IGNORECASE)
+_DOC_ID_REF_RE = re.compile(r"\bDOC_[A-Za-z0-9_]+\b", re.IGNORECASE)
 
 
 @dataclass
@@ -44,9 +46,13 @@ def extract_claims(answer: str, min_chars: Optional[int] = None) -> List[Claim]:
     for s in sentences:
         if len(s) < min_chars:
             continue
-        values = _NUM_RE.findall(s)
         cite_match = _CITATION_RE.search(s)
         clean = _CITATION_RE.sub("", s).strip()
+        # Clean doc IDs and chunk numbers before extracting factual numbers
+        clean_for_nums = _CHUNK_REF_RE.sub("", clean)
+        clean_for_nums = _DOC_ID_REF_RE.sub("", clean_for_nums)
+        values = _NUM_RE.findall(clean_for_nums)
+
         claims.append(Claim(
             text=s,
             clean_text=clean,

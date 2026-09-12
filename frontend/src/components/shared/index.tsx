@@ -57,6 +57,34 @@ export function ConfidenceMeter({ value, showLabel = true, size = 'md' }: Confid
   )
 }
 
+export function ConfidenceBadge({ value, size = 'sm' }: { value: number | null | undefined; size?: 'sm' | 'md' }) {
+  if (value === null || value === undefined) return null
+  const pct = Math.round(value * 100)
+  
+  let label = 'Low'
+  let bg = 'bg-red-50 dark:bg-red-500/15 border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400'
+  let dot = 'bg-red-500 dark:bg-red-400'
+  
+  if (pct >= 80) {
+    label = 'High'
+    bg = 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+    dot = 'bg-emerald-500 dark:bg-emerald-400'
+  } else if (pct >= 60) {
+    label = 'Medium'
+    bg = 'bg-amber-50 dark:bg-amber-500/15 border-amber-200 dark:border-amber-500/30 text-amber-600 dark:text-amber-400'
+    dot = 'bg-amber-500 dark:bg-amber-400'
+  }
+
+  const padding = size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs'
+
+  return (
+    <span className={cn('inline-flex items-center gap-1.5 font-medium border rounded-full', bg, padding)}>
+      <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', dot)} />
+      <span>{pct}% ({label})</span>
+    </span>
+  )
+}
+
 export function LoadingSkeleton({ className }: { className?: string }) {
   return <div className={cn('rounded-lg bg-gray-200 dark:bg-white/[0.04] shimmer-bg animate-pulse', className)} />
 }

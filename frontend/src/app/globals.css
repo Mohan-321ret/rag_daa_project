@@ -77,12 +77,12 @@
 }
 
 @layer utilities {
-  /* Dark-mode glass */
-  .dark .glass { @apply bg-white/5 backdrop-blur-xl border border-white/10; }
-  .dark .glass-card { @apply bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] rounded-2xl; }
-  /* Light-mode glass */
+  /* Light-mode glass (default) */
   .glass { @apply bg-black/5 backdrop-blur-xl border border-black/10; }
   .glass-card { @apply bg-white/80 backdrop-blur-2xl border border-black/[0.06] rounded-2xl shadow-sm; }
+  /* Dark-mode glass overrides */
+  .dark .glass { @apply bg-white/5 backdrop-blur-xl border border-white/10; }
+  .dark .glass-card { @apply bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] rounded-2xl shadow-none; }
 
   .gradient-text {
     @apply bg-gradient-to-r from-blue-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent;
@@ -119,6 +119,14 @@
            dark:bg-white/[0.04] dark:border-white/[0.08] dark:text-white dark:placeholder:text-white/25
            rounded-xl outline-none transition-all
            focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/10;
+  }
+  /* Adaptive code block */
+  .adaptive-code-block {
+    @apply bg-slate-100 border border-slate-200 text-slate-800 dark:bg-[#0a0a14] dark:border-white/[0.06] dark:text-white/70;
+  }
+  /* Adaptive subtle box */
+  .adaptive-subtle-box {
+    @apply bg-gray-50 border border-gray-200/80 dark:bg-white/[0.02] dark:border-white/[0.06];
   }
 }
 

@@ -442,6 +442,7 @@ export interface RAGQueryResponse {
   is_grounded: boolean | null
   citations: RAGCitation[]
   verification: Record<string, unknown> | null
+  confidence_score?: number | null
   ticket: { ticket_id: string; department: string; status: string } | null
 }
 
