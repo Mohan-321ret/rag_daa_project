@@ -42,6 +42,10 @@ export default function VerificationPage() {
   })
 
   const trust = result?.confidence_score ?? 0
+  const claimsChecked = result?.claims_checked ?? 0
+  const claimsTotal = result?.claims_total ?? 0
+  const coverage = claimsTotal ? claimsChecked / claimsTotal : 0
+  const contradictedCount = result?.verifications.filter(c => c.status === 'contradicted').length ?? 0
 
   return (
     <div className="space-y-6">
@@ -86,8 +90,10 @@ export default function VerificationPage() {
               <div className="flex items-center gap-3">
                 <ShieldCheck className={`w-6 h-6 ${trust >= 0.8 ? 'text-emerald-600 dark:text-emerald-400' : trust >= 0.6 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`} />
                 <div>
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">Overall Confidence Score</p>
-                  <p className="text-xs text-gray-500 dark:text-white/50">{result.claims_checked}/{result.claims_total} claims checked · {result.hallucinations.length} flagged</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">Checked-Claim Confidence</p>
+                  <p className="text-xs text-gray-500 dark:text-white/50">
+                    {claimsChecked}/{claimsTotal} factual claims checked ({(coverage * 100).toFixed(0)}% coverage) · {contradictedCount} contradicted
+                  </p>
                 </div>
               </div>
               <div className="text-right">
@@ -197,7 +203,7 @@ export default function VerificationPage() {
               <div className="grid grid-cols-3 gap-3">
                 {[
                   { label: 'Supported', value: result.verifications.filter(c => c.status === 'supported').length, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
-                  { label: 'Contradicted', value: result.hallucinations.length, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-500/10' },
+                  { label: 'Contradicted', value: contradictedCount, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-500/10' },
                   { label: 'Avg Similarity', value: `${(result.verifications.reduce((s, c) => s + c.statement_similarity, 0) / (result.verifications.length || 1) * 100).toFixed(0)}%`, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/10' },
                 ].map(s => (
                   <div key={s.label} className={`${s.bg} border border-gray-200 dark:border-white/[0.05] rounded-2xl p-4 text-center shadow-sm`}>

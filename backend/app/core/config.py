@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
 
     groq_api_key: str = ""
-    groq_model: str = "qwen/qwen3.6-27b"
+    groq_model: str = "qwen/qwen3.8-27b"
 
     # ── Embeddings ────────────────────────────────────────────────────────────
     # Options: all-MiniLM-L6-v2 (dim=384) | BAAI/bge-large-en-v1.5 (dim=1024)
@@ -49,7 +49,9 @@ class Settings(BaseSettings):
     faiss_index_path: str = "./data/faiss_index"
 
     # ── Document Ingestion ────────────────────────────────────────────────────
-    max_upload_size_mb: int = 25
+    # Large documents are streamed to the temporary upload directory before
+    # ingestion, so keep a high but finite protection against runaway uploads.
+    max_upload_size_mb: int = 1024
     temp_upload_dir: str = "./data/tmp_uploads"
     doc_id_prefix: str = "DOC"
     # Comma-separated list of allowed extensions

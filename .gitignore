@@ -32,9 +32,24 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # ─── Environment / Secrets ────────────────────────────────────────────────────
-.env
-.env.local
+# Root environment file
+/.env
+
+# Backend environment file
+/backend/.env
+
+# Frontend local environment file
+/frontend/.env.local
+
+# Other local environment files
 .env.*.local
+
+# Allow example environment files to be committed
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+
+# Certificates / private keys
 *.pem
 *.key
 
@@ -59,7 +74,5 @@ Thumbs.db
 logs/
 *.log
 
-
-
-
+# ─── Temporary Uploads ─────────────────────────────────────────────────────────
 backend/data/tmp_uploads/

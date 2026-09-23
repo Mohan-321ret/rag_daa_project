@@ -243,15 +243,19 @@ async def answer_question(
 
     # ─── Step 11: Automatic Ticketing ─────────────────────────────────────────
     # An effective confidence below the dynamically configured administrator
-    # threshold triggers automatic ticket generation and replaces the answer
-    # with a safe user notification message. Skipped for conversational greetings.
+    # threshold triggers automatic ticket generation. Keep the generated answer
+    # visible to the user; the ticket metadata carries the escalation notice.
     ticket = None
     ticket_user_message = None
     if analysis.intent.intent != "greeting":
-        from app.services.ticket_service import create_ticket_from_low_confidence, get_ticket_confidence_threshold
+        from app.services.ticket_service import (
+            create_ticket_from_low_confidence,
+            get_ticket_confidence_threshold,
+            is_ticketing_enabled,
+        )
         
         configured_threshold = get_ticket_confidence_threshold(db)
-        if effective_confidence < configured_threshold:
+        if is_ticketing_enabled(db) and effective_confidence < configured_threshold:
             ticket, ticket_user_message = create_ticket_from_low_confidence(
                 db,
                 query_id=query_id,
@@ -268,8 +272,6 @@ async def answer_question(
                 intent=analysis.intent.intent,
                 entities=analysis.entities,
             )
-            if ticket_user_message:
-                answer_text = ticket_user_message
 
     return {
         "answer": answer_text,
