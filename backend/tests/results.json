@@ -1,0 +1,1021 @@
+{
+  "evaluation_date": "2026-09-27T23:53:30+05:30",
+  "total_tests": 18,
+  "passed": 17,
+  "failed": 1,
+  "hit_rate": 0.9444444444444444,
+  "precision_at_3": 0.3148148148148148,
+  "precision_at_5": 0.18888888888888888,
+  "mrr": 0.9444444444444444,
+  "average_answer_similarity": 0.7713555555555556,
+  "average_response_time": 8.021294444444443,
+  "minimum_response_time": 0.5015,
+  "maximum_response_time": 20.0312,
+  "tests": [
+    {
+      "id": "Q01",
+      "question": "What percentage of net annual contract value do Enhanced, Premier, and Mission Critical support plans cost?",
+      "ground_truth": "Enhanced costs 8%, Premier costs 15%, and Mission Critical costs 22% of net annual contract value.",
+      "generated_answer": "Based on the provided context, the support plans are priced as a percentage of the net annual contract value as follows:\n\nAccording to DOC_97F6A491, enhanced | 24x5 | Portal, email, chat | No\nAccording to DOC_5DAEDFA4, eMEA 448 470 95%\nAccording to DOC_97F6A491, mission Critical | 24x7 with proactive monitoring | All channels plus dedicated bridge | Yes, named engineering escalation contact\n\nThese figures are outlined in the \"Support Plans\" section of the Contoso Ltd. Customer Support Service Level Agreement and Escalation Guide [DOC_97F6A491].",
+      "expected_source": "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx",
+      "retrieved_sources": [
+        "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx",
+        "SAL-PLY-011_Sales_Playbook_and_Discount_Matrix_v5.3.docx",
+        "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_97F6A491",
+          "document_name": "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx",
+          "chunk_index": 0,
+          "score": 7.7505,
+          "text_preview": "Contoso Ltd. — Customer Support Service Level Agreement and Escalation Guide\nDocument ID: OPS-SUP-018 | Version: 4.0 | Effective: 01 July 2025 Owner: Global Customer Support | Classification: Internal…"
+        },
+        {
+          "document_id": "DOC_4B683FE0",
+          "document_name": "SAL-PLY-011_Sales_Playbook_and_Discount_Matrix_v5.3.docx",
+          "chunk_index": 4,
+          "score": -7.7931,
+          "text_preview": "3 | Propose | Written proposal delivered, pricing presented | Best case\n4 | Negotiate | Verbal agreement, legal redlines exchanged | Commit\n5 | Closed Won / Closed Lost | Countersigned agreement or do…"
+        },
+        {
+          "document_id": "DOC_4B683FE0",
+          "document_name": "SAL-PLY-011_Sales_Playbook_and_Discount_Matrix_v5.3.docx",
+          "chunk_index": 1,
+          "score": -8.2936,
+          "text_preview": "3. Discount Approval Matrix\nDiscount is calculated against Contoso list price for the applicable region and product family. Discounts above 30% additionally require a written business case covering st…"
+        },
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 4,
+          "score": -10.5721,
+          "text_preview": "7. Prohibited Practices\nAccepting gifts, hospitality, or personal benefit from any current or prospective supplier above the threshold in HR-POL-001 Section 6. Engaging a supplier in which the employe…"
+        },
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 0,
+          "score": -10.8882,
+          "text_preview": "Contoso Ltd. — Procurement and Vendor Approval Policy\nDocument ID: FIN-POL-009 | Version: 3.0 | Effective: 01 January 2025 Owner: Global Procurement | Classification: Internal Related: IT-SEC-007 Sect…"
+        }
+      ],
+      "answer_similarity": 0.5365,
+      "response_time": 20.0312,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q02",
+      "question": "How does the support guide define response time?",
+      "ground_truth": "Response time is measured from case creation to the first substantive human response.",
+      "generated_answer": "The support guide defines response time as the duration measured from the creation of a case to the first substantive human response. These response time targets are considered contractual obligations [DOC_97F6A491].",
+      "expected_source": "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx",
+      "retrieved_sources": [
+        "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx",
+        "DEC-QBR-Q4FY26_Business_Review.pptx",
+        "IT-OPS-022_Incident_Response_Runbook_v1.8.docx"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_97F6A491",
+          "document_name": "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx",
+          "chunk_index": 0,
+          "score": 3.0059,
+          "text_preview": "Contoso Ltd. — Customer Support Service Level Agreement and Escalation Guide\nDocument ID: OPS-SUP-018 | Version: 4.0 | Effective: 01 July 2025 Owner: Global Customer Support | Classification: Internal…"
+        },
+        {
+          "document_id": "DOC_7122EC11",
+          "document_name": "DEC-QBR-Q4FY26_Business_Review.pptx",
+          "chunk_index": 1,
+          "score": -3.0036,
+          "text_preview": "[Slide 4]\nSecurity posture\nFive advisories published in H1 FY2026, two rated Critical\nCSRC-2026-0034\nCritical. Exploited in the wild. Federated retrieval bypassed classification filters on the seconda…"
+        },
+        {
+          "document_id": "DOC_B408D96C",
+          "document_name": "IT-OPS-022_Incident_Response_Runbook_v1.8.docx",
+          "chunk_index": 0,
+          "score": -6.3857,
+          "text_preview": "Contoso Ltd. — Incident Response Runbook\nDocument ID: IT-OPS-022 | Version: 1.8 | Effective: 01 June 2025 Owner: Security Operations Centre | Classification: Confidential Related: IT-SEC-007 (Informat…"
+        },
+        {
+          "document_id": "DOC_97F6A491",
+          "document_name": "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx",
+          "chunk_index": 1,
+          "score": -8.0772,
+          "text_preview": "4. Escalation Path\nCustomers may request escalation at any time. The internal escalation path for an unresolved case is:\nWhere a support case is determined to relate to a platform-wide fault, the case…"
+        },
+        {
+          "document_id": "DOC_B408D96C",
+          "document_name": "IT-OPS-022_Incident_Response_Runbook_v1.8.docx",
+          "chunk_index": 4,
+          "score": -10.7521,
+          "text_preview": "4 hours | Chief Executive Officer; Legal; Corporate Communications | CISO\nService tier | Example services | RTO | RPO\nTier 0 — Critical | Identity, payments, core API gateway | 1 hour | 5 minutes\nTier…"
+        }
+      ],
+      "answer_similarity": 0.7911,
+      "response_time": 0.5015,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q03",
+      "question": "Are support resolution times contractually committed?",
+      "ground_truth": "No. Response targets are contractual, but resolution times are targets only and are not contractually committed because resolution depends on factors such as the customer environment and third-party dependencies.",
+      "generated_answer": "No, support resolution times are **not** contractually committed. According to the Contoso Ltd. Support Plans documentation, response time targets are contractual, whereas resolution times are considered targets only. This distinction is made because resolution depends on various factors, including the customer's environment and third-party dependencies [DOC_97F6A491].",
+      "expected_source": "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx",
+      "retrieved_sources": [
+        "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx",
+        "SAL-PLY-011_Sales_Playbook_and_Discount_Matrix_v5.3.docx",
+        "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_97F6A491",
+          "document_name": "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx",
+          "chunk_index": 0,
+          "score": 5.3572,
+          "text_preview": "Contoso Ltd. Support Plans\nStandard support is included with all subscriptions. Enhanced, Premier, and Mission Critical are priced as a percentage of net annual contract value: 8%, 15%, and 22% respec…"
+        },
+        {
+          "document_id": "DOC_97F6A491",
+          "document_name": "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx",
+          "chunk_index": 1,
+          "score": -6.7424,
+          "text_preview": "4. Escalation Path\nCustomers may request escalation at any time. The internal escalation path for an unresolved case is:\nWhere a support case is determined to relate to a platform-wide fault, the case…"
+        },
+        {
+          "document_id": "DOC_4B683FE0",
+          "document_name": "SAL-PLY-011_Sales_Playbook_and_Discount_Matrix_v5.3.docx",
+          "chunk_index": 2,
+          "score": -7.4247,
+          "text_preview": "Sellers must never commit to unreleased functionality in writing. Roadmap discussions are permitted under the standard forward-looking statement disclaimer only. 5. Multi-Year Agreements\nMulti-year di…"
+        },
+        {
+          "document_id": "DOC_4B683FE0",
+          "document_name": "SAL-PLY-011_Sales_Playbook_and_Discount_Matrix_v5.3.docx",
+          "chunk_index": 1,
+          "score": -7.7967,
+          "text_preview": "3. Discount Approval Matrix\nDiscount is calculated against Contoso list price for the applicable region and product family. Discounts above 30% additionally require a written business case covering st…"
+        },
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 3,
+          "score": -10.6732,
+          "text_preview": "Sole-source procurement is permitted only where one of the following applies, and must be documented in the Sole Source Justification form:\nThe item is proprietary and available from one source only. …"
+        }
+      ],
+      "answer_similarity": 0.878,
+      "response_time": 0.5533,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q04",
+      "question": "How long does standard vendor onboarding take, and how long can onboarding take when a full security assessment is required?",
+      "ground_truth": "Standard vendor onboarding takes 10 to 15 working days. It can take up to 30 working days when a full security assessment is required.",
+      "generated_answer": "Based on the provided context, standard vendor onboarding takes **10 to 15 working days** [DOC_0B607C56]. When a full security assessment is required, the onboarding process can take up to **30 working days** [DOC_0B607C56].",
+      "expected_source": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+      "retrieved_sources": [
+        "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+        "IT-SEC-007_Information_Security_Policy_v4.1.docx",
+        "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+        "IT-OPS-022_Incident_Response_Runbook_v1.8.docx"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 1,
+          "score": 7.8607,
+          "text_preview": "3. Vendor Onboarding\nA vendor cannot be paid until onboarding is complete. Onboarding requires:\nRegistered legal entity details, tax registration, and bank account verification through a call-back to …"
+        },
+        {
+          "document_id": "DOC_F9ED36DC",
+          "document_name": "IT-SEC-007_Information_Security_Policy_v4.1.docx",
+          "chunk_index": 6,
+          "score": -0.2937,
+          "text_preview": "Restricted | Regulated data: personal data, payment data, source code, unpublished financials | Designated Restricted enclaves only | CISO approval, logged\nData state | Minimum standard\nAt rest | AES-…"
+        },
+        {
+          "document_id": "DOC_F9ED36DC",
+          "document_name": "IT-SEC-007_Information_Security_Policy_v4.1.docx",
+          "chunk_index": 4,
+          "score": -1.9018,
+          "text_preview": "All AI tool usage on Contoso systems is logged. Suspected policy violations are handled under the standard security incident process. 5. Email and Phishing\nContoso runs simulated phishing exercises at…"
+        },
+        {
+          "document_id": "DOC_DEE0E6B0",
+          "document_name": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+          "chunk_index": 0,
+          "score": -4.9114,
+          "text_preview": "Contoso Ltd. — New Joiner IT Provisioning SOP\nDocument ID: IT-SVC-003 | Version: 2.6 | Effective: 01 February 2025 Owner: IT Service Desk | Classification: Internal\n1. Timeline\nHardware for fully remo…"
+        },
+        {
+          "document_id": "DOC_B408D96C",
+          "document_name": "IT-OPS-022_Incident_Response_Runbook_v1.8.docx",
+          "chunk_index": 3,
+          "score": -6.952,
+          "text_preview": "SEV-4 | Minor issue, no material user impact | Non-production alert; single-user access anomaly\nSeverity | Acknowledge | First update to stakeholders | Update cadence | Target resolution\nSEV-1 | 15 mi…"
+        },
+        {
+          "document_id": "DOC_DEE0E6B0",
+          "document_name": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+          "chunk_index": 1,
+          "score": -7.6176,
+          "text_preview": "Code of Conduct certification. Information Security Awareness. Data Privacy Fundamentals. Anti-Bribery and Anti-Corruption. 4. Baseline Application Access\nAll joiners receive: email and calendar, the …"
+        },
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 3,
+          "score": -8.5181,
+          "text_preview": "Sole-source procurement is permitted only where one of the following applies, and must be documented in the Sole Source Justification form:\nThe item is proprietary and available from one source only. …"
+        }
+      ],
+      "answer_similarity": 0.9505,
+      "response_time": 1.7037,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q05",
+      "question": "When must a purchase order exist in relation to delivery of goods or services?",
+      "ground_truth": "A purchase order must exist before goods or services are delivered. An invoice without a matching purchase order is held in exception and returned to the requester.",
+      "generated_answer": "According to the Contoso Ltd. Procurement and Vendor Approval Policy, a purchase order must exist **before** goods or services are delivered [DOC_0B607C56]. If an invoice is received without a matching purchase order, it will be held in exception and returned to the requester [DOC_0B607C56].",
+      "expected_source": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+      "retrieved_sources": [
+        "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 2,
+          "score": 7.1923,
+          "text_preview": "A purchase order must exist before goods or services are delivered. Invoices received without a matching purchase order are held in exception and returned to the requester. Contoso operates three-way …"
+        },
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 1,
+          "score": 2.6161,
+          "text_preview": "3. Vendor Onboarding\nA vendor cannot be paid until onboarding is complete. Onboarding requires:\nRegistered legal entity details, tax registration, and bank account verification through a call-back to …"
+        },
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 0,
+          "score": -6.8708,
+          "text_preview": "Contoso Ltd. — Procurement and Vendor Approval Policy\nDocument ID: FIN-POL-009 | Version: 3.0 | Effective: 01 January 2025 Owner: Global Procurement | Classification: Internal Related: IT-SEC-007 Sect…"
+        },
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 3,
+          "score": -8.7807,
+          "text_preview": "Sole-source procurement is permitted only where one of the following applies, and must be documented in the Sole Source Justification form:\nThe item is proprietary and available from one source only. …"
+        },
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 4,
+          "score": -10.9395,
+          "text_preview": "7. Prohibited Practices\nAccepting gifts, hospitality, or personal benefit from any current or prospective supplier above the threshold in HR-POL-001 Section 6. Engaging a supplier in which the employe…"
+        }
+      ],
+      "answer_similarity": 0.9095,
+      "response_time": 0.55,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q06",
+      "question": "How is total contract value calculated for procurement approval thresholds?",
+      "ground_truth": "Total contract value is the aggregate value over the full contract term, including all renewal options, rather than the annual value. Splitting a purchase to avoid a threshold is a disciplinary matter.",
+      "generated_answer": "Based on the provided documents, the total contract value for procurement approval thresholds is calculated as the **aggregate value across the full contract term**, which includes all renewal options [DOC_0B607C56]. It is explicitly noted that this calculation does not use the annual value [DOC_0B607C56]. Additionally, the policy states that splitting a purchase to avoid these thresholds is considered a disciplinary matter [DOC_0B607C56].\n\nThe specific approval thresholds based on this total contract value (in INR) are as follows [DOC_0B607C56]:\n*   **Up to 2,00,000**: Line Manager approval (Competitive bids not required).\n*   **2,00,001 to 10,00,000**: Department Head approval (Two written quotations required).\n*   **10,00,001 to 50,00,000**: Regional Finance Controller approval (Three written quotations required).\n*   **50,00,001 to 2,00,00,000**: Vice President and Chief Financial Officer approval (Formal RFP required).\n*   **Above 2,00,00,000**: Chief Executive Officer and Board Procurement Committee approval (Formal RFP with independent evaluation panel required).",
+      "expected_source": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+      "retrieved_sources": [
+        "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+        "SAL-PLY-011_Sales_Playbook_and_Discount_Matrix_v5.3.docx"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 0,
+          "score": 4.2847,
+          "text_preview": "Contoso Ltd. — Procurement and Vendor Approval Policy\nDocument ID: FIN-POL-009 | Version: 3.0 | Effective: 01 January 2025 Owner: Global Procurement | Classification: Internal Related: IT-SEC-007 Sect…"
+        },
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 4,
+          "score": 3.6999,
+          "text_preview": "7. Prohibited Practices\nAccepting gifts, hospitality, or personal benefit from any current or prospective supplier above the threshold in HR-POL-001 Section 6. Engaging a supplier in which the employe…"
+        },
+        {
+          "document_id": "DOC_4B683FE0",
+          "document_name": "SAL-PLY-011_Sales_Playbook_and_Discount_Matrix_v5.3.docx",
+          "chunk_index": 1,
+          "score": -2.0051,
+          "text_preview": "3. Discount Approval Matrix\nDiscount is calculated against Contoso list price for the applicable region and product family. Discounts above 30% additionally require a written business case covering st…"
+        },
+        {
+          "document_id": "DOC_4B683FE0",
+          "document_name": "SAL-PLY-011_Sales_Playbook_and_Discount_Matrix_v5.3.docx",
+          "chunk_index": 4,
+          "score": -8.6519,
+          "text_preview": "3 | Propose | Written proposal delivered, pricing presented | Best case\n4 | Negotiate | Verbal agreement, legal redlines exchanged | Commit\n5 | Closed Won / Closed Lost | Countersigned agreement or do…"
+        },
+        {
+          "document_id": "DOC_4B683FE0",
+          "document_name": "SAL-PLY-011_Sales_Playbook_and_Discount_Matrix_v5.3.docx",
+          "chunk_index": 5,
+          "score": -10.8394,
+          "text_preview": "3 years | Annual uplift capped at 4% | Additional 7%\n5 years | Annual uplift capped at 3% | Additional 12%\nAttainment | Commission rate on incremental revenue\n0% to 70% of quota | 60% of target rate\n7…"
+        }
+      ],
+      "answer_similarity": 0.5607,
+      "response_time": 4.5737,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q07",
+      "question": "What are the standard weekly working hours and core collaboration hours in the employee handbook?",
+      "ground_truth": "Standard working hours are 40 hours per week. Core collaboration hours are 11:00 to 16:00 in the employee's registered home time zone.",
+      "generated_answer": "Based on the provided documents, the standard weekly working hours are **40 hours per week**. The core collaboration hours, during which employees are expected to be reachable, are **11:00 to 16:00** in the employee's registered home time zone [DOC_68A30461].\n\nPlease note that other excerpts mention a core remote work reachability window of 10:00 to 16:00 [DOC_BF40538D], but the specific \"core collaboration hours\" as defined in the working hours section are 11:00 to 16:00 [DOC_68A30461].",
+      "expected_source": "HR-POL-001_Employee_Handbook_v3.2.docx",
+      "retrieved_sources": [
+        "HR-POL-001_Employee_Handbook_v3.2.docx",
+        "Unknown source (DOC_BF40538D)",
+        "Unknown source (DOC_6EB86464)"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_68A30461",
+          "document_name": "HR-POL-001_Employee_Handbook_v3.2.docx",
+          "chunk_index": 1,
+          "score": 6.265,
+          "text_preview": "2. Working Hours and Flexible Work\nStandard working hours are 40 hours per week. Core collaboration hours, during which employees are expected to be reachable, are 11:00 to 16:00 in the employee's reg…"
+        },
+        {
+          "document_id": "DOC_BF40538D",
+          "document_name": "Unknown source (DOC_BF40538D)",
+          "chunk_index": 2,
+          "score": -0.06,
+          "text_preview": "Section 3: Remote Work Policy\nRemote work is allowed 2 days per week for all full-time employees. Remote days must be coordinated within each team so that at least half of the team is present in the o…"
+        },
+        {
+          "document_id": "DOC_6EB86464",
+          "document_name": "Unknown source (DOC_6EB86464)",
+          "chunk_index": 0,
+          "score": -2.4879,
+          "text_preview": "HR Handbook Excerpt\nEmployees are entitled to 20 days of annual leave per year, per company policy. Remote work is allowed two days per week for all full-time staff."
+        }
+      ],
+      "answer_similarity": 0.9158,
+      "response_time": 5.3862,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q08",
+      "question": "How many days per week must employees assigned to an office attend in person under the hybrid work standard?",
+      "ground_truth": "Effective 1 July 2025, employees assigned to a Contoso office must attend that office at least three days per calendar week.",
+      "generated_answer": "Based on the provided documents, employees assigned to a Contoso office location must attend the office a minimum of **three days per calendar week** under the hybrid work standard effective 01 July 2025 [DOC_68A30461]. This policy supersedes the prior requirement of two days per week [DOC_68A30461].\n\nNote: Other documents mention a two-day remote allowance [DOC_BF40538D] or a two-day remote work allowance in an HR handbook excerpt [DOC_6EB86464], but the specific \"hybrid work standard\" for office-assigned employees is defined as three days in-office in the most recent policy update [DOC_68A30461].",
+      "expected_source": "HR-POL-001_Employee_Handbook_v3.2.docx",
+      "retrieved_sources": [
+        "HR-POL-001_Employee_Handbook_v3.2.docx",
+        "Unknown source (DOC_BF40538D)",
+        "Unknown source (DOC_6EB86464)"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_68A30461",
+          "document_name": "HR-POL-001_Employee_Handbook_v3.2.docx",
+          "chunk_index": 1,
+          "score": 7.7695,
+          "text_preview": "2. Working Hours and Flexible Work\nStandard working hours are 40 hours per week. Core collaboration hours, during which employees are expected to be reachable, are 11:00 to 16:00 in the employee's reg…"
+        },
+        {
+          "document_id": "DOC_BF40538D",
+          "document_name": "Unknown source (DOC_BF40538D)",
+          "chunk_index": 2,
+          "score": 1.8457,
+          "text_preview": "Section 3: Remote Work Policy\nRemote work is allowed 2 days per week for all full-time employees. Remote days must be coordinated within each team so that at least half of the team is present in the o…"
+        },
+        {
+          "document_id": "DOC_6EB86464",
+          "document_name": "Unknown source (DOC_6EB86464)",
+          "chunk_index": 0,
+          "score": -0.3801,
+          "text_preview": "HR Handbook Excerpt\nEmployees are entitled to 20 days of annual leave per year, per company policy. Remote work is allowed two days per week for all full-time staff."
+        }
+      ],
+      "answer_similarity": 0.7031,
+      "response_time": 5.0023,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q09",
+      "question": "How many fully remote weeks per financial year may a manager approve for personal circumstances?",
+      "ground_truth": "A manager may approve up to eight fully remote weeks per financial year. More than eight weeks requires Director-level approval and notification to People Operations at least 15 working days in advance.",
+      "generated_answer": "I don't have enough information in the provided documents to answer this. The context excerpts specify that remote work is allowed two days per week for full-time staff [DOC_6EB86464, DOC_59CBA5B6] and detail coordination and security requirements [DOC_BF40538D], but they do not mention a policy for \"fully remote weeks per financial year\" approved for personal circumstances.",
+      "expected_source": "HR-POL-001_Employee_Handbook_v3.2.docx",
+      "retrieved_sources": [
+        "Unknown source (DOC_6EB86464)",
+        "Unknown source (DOC_59CBA5B6)",
+        "Unknown source (DOC_BF40538D)"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_6EB86464",
+          "document_name": "Unknown source (DOC_6EB86464)",
+          "chunk_index": 0,
+          "score": -1.0051,
+          "text_preview": "HR Handbook Excerpt\nEmployees are entitled to 20 days of annual leave per year, per company policy. Remote work is allowed two days per week for all full-time staff."
+        },
+        {
+          "document_id": "DOC_59CBA5B6",
+          "document_name": "Unknown source (DOC_59CBA5B6)",
+          "chunk_index": 0,
+          "score": -1.1253,
+          "text_preview": "Company Leave Policy\nEmployees are entitled to 20 days of annual leave per year. Remote work is allowed 2 days per week for all employees."
+        },
+        {
+          "document_id": "DOC_BF40538D",
+          "document_name": "Unknown source (DOC_BF40538D)",
+          "chunk_index": 2,
+          "score": -1.6938,
+          "text_preview": "Section 3: Remote Work Policy\nRemote work is allowed 2 days per week for all full-time employees. Remote days must be coordinated within each team so that at least half of the team is present in the o…"
+        }
+      ],
+      "answer_similarity": 0.6197,
+      "response_time": 4.5141,
+      "retrieval_pass": false,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q10",
+      "question": "What are the air-travel class rules for economy, premium economy, and business class?",
+      "ground_truth": "Economy class is standard for all employees and routes. Premium economy is permitted when the scheduled single-leg flight exceeds six hours. Business class is permitted for Band 8 and above when the scheduled single-leg flight exceeds nine hours.",
+      "generated_answer": "Based on the current travel policy (effective 01 April 2025), the rules for air-travel class entitlements are as follows [DOC_64E145C2]:\n\n*   **Economy Class:** This is the standard class of travel for all employees on all routes [DOC_64E145C2].\n*   **Premium Economy Class:** This class is permitted when the scheduled single-leg flight time exceeds six hours [DOC_64E145C2].\n*   **Business Class:** This class is permitted only for employees in Band 8 and above, and only where the scheduled single-leg flight time exceeds nine hours [DOC_64E145C2].\n\n*Note: A previous version of the policy (HR-POL-014 v1.4) contained different thresholds (8 hours for premium economy) and band requirements (Band 9 for business), but this version was superseded on 01 April 2025 and should not be used for current entitlements [DOC_DEC31A92].*",
+      "expected_source": "HR-POL-014_Travel_and_Expense_Policy_v2.0.docx",
+      "retrieved_sources": [
+        "HR-POL-014_Travel_and_Expense_Policy_v2.0.docx",
+        "HR-POL-014_Travel_and_Expense_Policy_v1.4_SUPERSEDED.docx"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_64E145C2",
+          "document_name": "HR-POL-014_Travel_and_Expense_Policy_v2.0.docx",
+          "chunk_index": 1,
+          "score": 5.5744,
+          "text_preview": "2. Travel Authorisation\nAll travel requires an approved Travel Request in Concur before any booking is made. Approval authority is as follows:\nBookings must be made through the designated travel manag…"
+        },
+        {
+          "document_id": "DOC_DEC31A92",
+          "document_name": "HR-POL-014_Travel_and_Expense_Policy_v1.4_SUPERSEDED.docx",
+          "chunk_index": 0,
+          "score": 4.4943,
+          "text_preview": "Contoso Ltd. — Travel and Expense Policy [SUPERSEDED]\nDocument ID: HR-POL-014 | Version: 1.4 | Effective: 01 April 2023 Status: SUPERSEDED on 01 April 2025 by HR-POL-014 v2.0. Retained for audit refer…"
+        },
+        {
+          "document_id": "DOC_64E145C2",
+          "document_name": "HR-POL-014_Travel_and_Expense_Policy_v2.0.docx",
+          "chunk_index": 3,
+          "score": -9.7326,
+          "text_preview": "Ride-hailing and taxi services are reimbursable for airport transfers and customer visits. Employees travelling on the same itinerary are expected to share transport where practical. Personal vehicle …"
+        },
+        {
+          "document_id": "DOC_64E145C2",
+          "document_name": "HR-POL-014_Travel_and_Expense_Policy_v2.0.docx",
+          "chunk_index": 4,
+          "score": -10.7494,
+          "text_preview": "Travel insurance purchased separately, as Contoso maintains global corporate cover. Loyalty programme membership fees and lounge memberships. Expenses of a spouse, partner, or family member accompanyi…"
+        },
+        {
+          "document_id": "DOC_64E145C2",
+          "document_name": "HR-POL-014_Travel_and_Expense_Policy_v2.0.docx",
+          "chunk_index": 2,
+          "score": -11.1934,
+          "text_preview": "4. Accommodation Caps\nNightly accommodation caps, inclusive of taxes, effective 01 April 2025:\nWhere a conference or customer-hosted event has a negotiated room block above the cap, the block rate may…"
+        }
+      ],
+      "answer_similarity": 0.7678,
+      "response_time": 11.5337,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q11",
+      "question": "How far in advance should travel tickets be booked, and what is required for a booking made later?",
+      "ground_truth": "Tickets should be booked at least 14 calendar days before departure. A booking made within 14 days requires documented business justification in the Travel Request.",
+      "generated_answer": "Based on the current Contoso Ltd. Travel and Expense Policy (HR-POL-014 v2.0, effective 01 April 2025), the requirements for booking travel tickets are as follows:\n\n*   **Standard Booking Window:** Tickets should be booked at least **14 calendar days** before departure [DOC_64E145C2].\n*   **Late Bookings:** If a booking is made within 14 days of departure, it requires a **documented business justification** included in the Travel Request [DOC_64E145C2].\n\nAccording to DOC_64E145C2, bookings made inside 14 days require a documented business justification in the Travel Request.",
+      "expected_source": "HR-POL-014_Travel_and_Expense_Policy_v2.0.docx",
+      "retrieved_sources": [
+        "HR-POL-014_Travel_and_Expense_Policy_v2.0.docx",
+        "HR-POL-014_Travel_and_Expense_Policy_v1.4_SUPERSEDED.docx",
+        "SAL-PLY-011_Sales_Playbook_and_Discount_Matrix_v5.3.docx",
+        "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_64E145C2",
+          "document_name": "HR-POL-014_Travel_and_Expense_Policy_v2.0.docx",
+          "chunk_index": 1,
+          "score": 6.6388,
+          "text_preview": "2. Travel Authorisation\nAll travel requires an approved Travel Request in Concur before any booking is made. Approval authority is as follows:\nBookings must be made through the designated travel manag…"
+        },
+        {
+          "document_id": "DOC_DEC31A92",
+          "document_name": "HR-POL-014_Travel_and_Expense_Policy_v1.4_SUPERSEDED.docx",
+          "chunk_index": 1,
+          "score": 3.6817,
+          "text_preview": "Tickets should be booked at least 21 calendar days before departure. 3. Accommodation Caps\n4. Meal Per Diem\nPer diem is reduced by 25% per meal provided by a third party. 5. Ground Transport\nPersonal …"
+        },
+        {
+          "document_id": "DOC_DEC31A92",
+          "document_name": "HR-POL-014_Travel_and_Expense_Policy_v1.4_SUPERSEDED.docx",
+          "chunk_index": 0,
+          "score": 2.1075,
+          "text_preview": "Contoso Ltd. — Travel and Expense Policy [SUPERSEDED]\nDocument ID: HR-POL-014 | Version: 1.4 | Effective: 01 April 2023 Status: SUPERSEDED on 01 April 2025 by HR-POL-014 v2.0. Retained for audit refer…"
+        },
+        {
+          "document_id": "DOC_4B683FE0",
+          "document_name": "SAL-PLY-011_Sales_Playbook_and_Discount_Matrix_v5.3.docx",
+          "chunk_index": 2,
+          "score": -6.2223,
+          "text_preview": "Sellers must never commit to unreleased functionality in writing. Roadmap discussions are permitted under the standard forward-looking statement disclaimer only. 5. Multi-Year Agreements\nMulti-year di…"
+        },
+        {
+          "document_id": "DOC_64E145C2",
+          "document_name": "HR-POL-014_Travel_and_Expense_Policy_v2.0.docx",
+          "chunk_index": 0,
+          "score": -7.1125,
+          "text_preview": "Contoso Ltd. — Travel and Expense Policy\nDocument ID: HR-POL-014 | Version: 2.0 | Effective: 01 April 2025 Owner: Finance Shared Services | Classification: Internal Supersedes: HR-POL-014 v1.4 (01 Apr…"
+        },
+        {
+          "document_id": "DOC_64E145C2",
+          "document_name": "HR-POL-014_Travel_and_Expense_Policy_v2.0.docx",
+          "chunk_index": 4,
+          "score": -7.2163,
+          "text_preview": "Travel insurance purchased separately, as Contoso maintains global corporate cover. Loyalty programme membership fees and lounge memberships. Expenses of a spouse, partner, or family member accompanyi…"
+        },
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 1,
+          "score": -9.7343,
+          "text_preview": "3. Vendor Onboarding\nA vendor cannot be paid until onboarding is complete. Onboarding requires:\nRegistered legal entity details, tax registration, and bank account verification through a call-back to …"
+        },
+        {
+          "document_id": "DOC_64E145C2",
+          "document_name": "HR-POL-014_Travel_and_Expense_Policy_v2.0.docx",
+          "chunk_index": 2,
+          "score": -10.7335,
+          "text_preview": "4. Accommodation Caps\nNightly accommodation caps, inclusive of taxes, effective 01 April 2025:\nWhere a conference or customer-hosted event has a negotiated room block above the cap, the block rate may…"
+        }
+      ],
+      "answer_similarity": 0.8488,
+      "response_time": 16.1419,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q12",
+      "question": "When must a new joiner complete mandatory training, and what happens to production access until it is complete?",
+      "ground_truth": "The four mandatory training items must be completed within 30 days of joining. Access to production systems is withheld until all four are complete.",
+      "generated_answer": "Based on the provided context, a new joiner must complete mandatory training within **30 days** of joining. Access to production systems is **withheld** until all four mandatory training modules are completed.\n\nThe specific training modules listed include:\n*   Anti-Bribery and Anti-Corruption\n*   Baseline Application Access\n\n[DOC_DEE0E6B0]",
+      "expected_source": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+      "retrieved_sources": [
+        "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+        "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+        "HR-POL-001_Employee_Handbook_v3.2.docx",
+        "Internship_Report_Mohana_Prasanth_S (2).pdf"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_DEE0E6B0",
+          "document_name": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+          "chunk_index": 0,
+          "score": 4.7592,
+          "text_preview": "Contoso Ltd. — New Joiner IT Provisioning SOP\nDocument ID: IT-SVC-003 | Version: 2.6 | Effective: 01 February 2025 Owner: IT Service Desk | Classification: Internal\n1. Timeline\nHardware for fully remo…"
+        },
+        {
+          "document_id": "DOC_DEE0E6B0",
+          "document_name": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+          "chunk_index": 2,
+          "score": -2.1199,
+          "text_preview": "Working day relative to start date | Activity | Owner\nD-10 | HR confirms offer acceptance and creates Workday record | People Operations\nD-7 | Account provisioning triggered automatically from Workday…"
+        },
+        {
+          "document_id": "DOC_DEE0E6B0",
+          "document_name": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+          "chunk_index": 1,
+          "score": -5.9601,
+          "text_preview": "Anti-Bribery and Anti-Corruption. Baseline Application Access\nAll joiners receive: email and calendar, the collaboration suite, ServiceNow, Workday, Concur, and the internal knowledge portal. Everythi…"
+        },
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 1,
+          "score": -7.5028,
+          "text_preview": "3. Vendor Onboarding\nA vendor cannot be paid until onboarding is complete. Onboarding requires:\nRegistered legal entity details, tax registration, and bank account verification through a call-back to …"
+        },
+        {
+          "document_id": "DOC_68A30461",
+          "document_name": "HR-POL-001_Employee_Handbook_v3.2.docx",
+          "chunk_index": 4,
+          "score": -8.3429,
+          "text_preview": "Accidental death and disability cover at five times annual base salary. Employee assistance programme, including 12 counselling sessions per year at no cost. Annual learning allowance of 60,000 local …"
+        },
+        {
+          "document_id": "DOC_8D012608",
+          "document_name": "Internship_Report_Mohana_Prasanth_S (2).pdf",
+          "chunk_index": 44,
+          "score": -10.1139,
+          "text_preview": "● New source systems can be introduced by integrating them into the existing structure. 13 CHAPTER 7\nPROJECT IMPLEMENTATION / TRAINING DETAILS\n7.1 Project Overview\nThe internship was structured in two…"
+        },
+        {
+          "document_id": "DOC_0B607C56",
+          "document_name": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx",
+          "chunk_index": 3,
+          "score": -10.5531,
+          "text_preview": "Sole-source procurement is permitted only where one of the following applies, and must be documented in the Sole Source Justification form:\nThe item is proprietary and available from one source only. …"
+        },
+        {
+          "document_id": "DOC_8D012608",
+          "document_name": "Internship_Report_Mohana_Prasanth_S (2).pdf",
+          "chunk_index": 3,
+          "score": -11.1348,
+          "text_preview": "How were these goals identified\nas relevant to the project's\nobjectives? These goals were identified because the project develops\nmodern digital infrastr ucture (SDG 9), strengthens the data\nfoundatio…"
+        }
+      ],
+      "answer_similarity": 0.8444,
+      "response_time": 13.2531,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q13",
+      "question": "What standard hardware does every employee receive, and who approves a second monitor?",
+      "ground_truth": "Every employee receives one external monitor, a keyboard and mouse set, and a headset. A line manager must approve a second monitor.",
+      "generated_answer": "Based on the provided context, every employee receives one external monitor, a keyboard and mouse set, and a headset [DOC_DEE0E6B0]. A second monitor requires approval from the line manager [DOC_DEE0E6B0].",
+      "expected_source": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+      "retrieved_sources": [
+        "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+        "IT-SEC-007_Information_Security_Policy_v4.1.docx",
+        "Unknown source (DOC_D3EC409E)"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_DEE0E6B0",
+          "document_name": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+          "chunk_index": 0,
+          "score": 6.0138,
+          "text_preview": "Contoso Ltd. — New Joiner IT Provisioning SOP\nDocument ID: IT-SVC-003 | Version: 2.6 | Effective: 01 February 2025 Owner: IT Service Desk | Classification: Internal\n1. Timeline\nHardware for fully remo…"
+        },
+        {
+          "document_id": "DOC_DEE0E6B0",
+          "document_name": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+          "chunk_index": 2,
+          "score": -8.513,
+          "text_preview": "Working day relative to start date | Activity | Owner\nD-10 | HR confirms offer acceptance and creates Workday record | People Operations\nD-7 | Account provisioning triggered automatically from Workday…"
+        },
+        {
+          "document_id": "DOC_F9ED36DC",
+          "document_name": "IT-SEC-007_Information_Security_Policy_v4.1.docx",
+          "chunk_index": 5,
+          "score": -9.0567,
+          "text_preview": "Vendors handling Restricted data must hold a current ISO 27001 certificate or SOC 2 Type II report. 8. Reporting Security Incidents\nAll suspected security incidents must be reported to the Security Op…"
+        },
+        {
+          "document_id": "DOC_D3EC409E",
+          "document_name": "Unknown source (DOC_D3EC409E)",
+          "chunk_index": 0,
+          "score": -9.6255,
+          "text_preview": "Human Resources Remote Work Policy Version 2.0\n\nSection 1: Eligibility\nAll full-time personnel may work from home.\n\nSection 2: Equipment Reimbursement\nEligible employees receive an annual stipend of u…"
+        }
+      ],
+      "answer_similarity": 0.9451,
+      "response_time": 6.5785,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q14",
+      "question": "When are a leaver's accounts disabled?",
+      "ground_truth": "The Identity Team disables all accounts at 18:00 local time on the employee's last working day.",
+      "generated_answer": "Based on the provided documents, a leaver's accounts are disabled by the Identity Team at **18:00 local time** on the **last working day** of employment [DOC_DEE0E6B0].",
+      "expected_source": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+      "retrieved_sources": [
+        "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+        "Unknown source (DOC_F42242D8)",
+        "Unknown source (DOC_BF40538D)",
+        "HR-POL-001_Employee_Handbook_v3.2.docx"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_DEE0E6B0",
+          "document_name": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+          "chunk_index": 1,
+          "score": -0.2355,
+          "text_preview": "Code of Conduct certification. Information Security Awareness. Data Privacy Fundamentals. Anti-Bribery and Anti-Corruption. 4. Baseline Application Access\nAll joiners receive: email and calendar, the …"
+        },
+        {
+          "document_id": "DOC_F42242D8",
+          "document_name": "Unknown source (DOC_F42242D8)",
+          "chunk_index": 0,
+          "score": -6.5789,
+          "text_preview": "Company Leave Policy\n\nEmployees are entitled to 25 days of annual leave per year.\nSick leave requires a medical certificate after three consecutive days of absence.\nRemote work is allowed 3 days per w…"
+        },
+        {
+          "document_id": "DOC_BF40538D",
+          "document_name": "Unknown source (DOC_BF40538D)",
+          "chunk_index": 0,
+          "score": -8.6948,
+          "text_preview": "Company Policy Handbook\n\nSection 1: Annual Leave Policy\nEmployees are entitled to 25 days of annual leave per year. Annual leave accrues monthly at a proportional rate from the first day of employment…"
+        },
+        {
+          "document_id": "DOC_68A30461",
+          "document_name": "HR-POL-001_Employee_Handbook_v3.2.docx",
+          "chunk_index": 6,
+          "score": -9.456,
+          "text_preview": "Asset return and access revocation are handled jointly by IT Operations under IT-SVC-003 and must complete on or before the last working day. 8. Grievance and Escalation\nEmployees should raise workpla…"
+        }
+      ],
+      "answer_similarity": 0.7691,
+      "response_time": 8.7983,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q15",
+      "question": "What must be recorded before a new personal-data processing activity can begin?",
+      "ground_truth": "The activity must be recorded in the Record of Processing Activities with a documented lawful basis, and the entry must be approved by the Data Protection Officer before the business unit begins processing.",
+      "generated_answer": "Before a new personal-data processing activity can begin, the following must be recorded and approved:\n\n1.  **Record of Processing Activities (ROPA):** Every processing activity must be documented in the Record of Processing Activities, including a documented lawful basis [DOC_438F6D5F].\n2.  **Data Protection Officer Approval:** The entry in the Record of Processing Activities must be approved by the Data Protection Officer; business units cannot start the activity until this approval is granted [DOC_438F6D5F].\n\nAdditionally, depending on the nature of the processing, a **Data Protection Impact Assessment (DPIA)** may be mandatory before launch if the activity involves high-risk factors such as systematic evaluation with legal effects, large-scale processing of special category data, or the use of new technologies like AI on personal data [DOC_438F6D5F].",
+      "expected_source": "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx",
+      "retrieved_sources": [
+        "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx",
+        "Unknown source (DOC_A5E8E99D)"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_438F6D5F",
+          "document_name": "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx",
+          "chunk_index": 0,
+          "score": 4.9529,
+          "text_preview": "Contoso Ltd. — Data Privacy and Regulatory Compliance Guide\nDocument ID: LEG-CMP-005 | Version: 2.4 | Effective: 01 March 2025 Owner: Legal and Compliance, Office of the Data Protection Officer | Clas…"
+        },
+        {
+          "document_id": "DOC_438F6D5F",
+          "document_name": "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx",
+          "chunk_index": 4,
+          "score": -0.4798,
+          "text_preview": "7. Vendor and Processor Obligations\nEvery vendor processing personal data on Contoso's behalf must execute the Contoso Data Processing Agreement before any data is shared. Sub-processors may not be ap…"
+        },
+        {
+          "document_id": "DOC_438F6D5F",
+          "document_name": "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx",
+          "chunk_index": 3,
+          "score": -1.6273,
+          "text_preview": "6. Data Protection Impact Assessment\nA DPIA is mandatory before launching any processing that involves:\nSystematic and extensive automated evaluation producing legal or similarly significant effects. …"
+        },
+        {
+          "document_id": "DOC_A5E8E99D",
+          "document_name": "Unknown source (DOC_A5E8E99D)",
+          "chunk_index": 50,
+          "score": -8.6772,
+          "text_preview": "step rather than a preliminary formality. Transformations encode assumptions about the data they\nreceive – which fields are populated, what values they contain, how records are identified. A\ntransform…"
+        },
+        {
+          "document_id": "DOC_A5E8E99D",
+          "document_name": "Unknown source (DOC_A5E8E99D)",
+          "chunk_index": 16,
+          "score": -10.4226,
+          "text_preview": "Where data analysis focuses on interpreting data, data engineering ensures that the data being\ninterpreted is complete, correct and available. Alongside this shift, increasing emphasis has been placed…"
+        }
+      ],
+      "answer_similarity": 0.7415,
+      "response_time": 8.8631,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q16",
+      "question": "Within what time must a privacy request be logged, and what should an employee do if it is received directly?",
+      "ground_truth": "Every request must be logged in the Privacy Request Register within one working day. An employee who receives one directly must forward it to the Privacy Operations mailbox immediately and must not respond substantively.",
+      "generated_answer": "A privacy request must be logged in the Privacy Request Register within one working day of receipt, regardless of the channel through which it arrives [DOC_438F6D5F]. If an employee receives a request directly, they must forward it to the Privacy Operations mailbox immediately and must not respond substantively themselves [DOC_438F6D5F].",
+      "expected_source": "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx",
+      "retrieved_sources": [
+        "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx",
+        "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+        "Unknown source (DOC_BF40538D)",
+        "IT-SEC-007_Information_Security_Policy_v4.1.docx"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_438F6D5F",
+          "document_name": "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx",
+          "chunk_index": 1,
+          "score": 5.0466,
+          "text_preview": "Consent must be free, specific, informed, unconditional, and unambiguous, with a clear affirmative action. Pre-ticked boxes and bundled consent are prohibited. Consent may be withdrawn at any time wit…"
+        },
+        {
+          "document_id": "DOC_DEE0E6B0",
+          "document_name": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx",
+          "chunk_index": 1,
+          "score": -1.2821,
+          "text_preview": "Code of Conduct certification. Information Security Awareness. Data Privacy Fundamentals. Anti-Bribery and Anti-Corruption. 4. Everything beyond this baseline is role-based and requested by the line m…"
+        },
+        {
+          "document_id": "DOC_BF40538D",
+          "document_name": "Unknown source (DOC_BF40538D)",
+          "chunk_index": 2,
+          "score": -5.6779,
+          "text_preview": "Section 3: Remote Work Policy\nRemote work is allowed 2 days per week for all full-time employees. Remote days must be coordinated within each team so that at least half of the team is present in the o…"
+        },
+        {
+          "document_id": "DOC_F9ED36DC",
+          "document_name": "IT-SEC-007_Information_Security_Policy_v4.1.docx",
+          "chunk_index": 2,
+          "score": -6.3482,
+          "text_preview": "A documented business justification naming the specific dataset. An expiry date not exceeding 180 days, after which access lapses automatically. 2.3 Access Reviews\nData owners must certify their acces…"
+        },
+        {
+          "document_id": "DOC_438F6D5F",
+          "document_name": "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx",
+          "chunk_index": 4,
+          "score": -7.4136,
+          "text_preview": "7. Vendor and Processor Obligations\nEvery vendor processing personal data on Contoso's behalf must execute the Contoso Data Processing Agreement before any data is shared. Sub-processors may not be ap…"
+        },
+        {
+          "document_id": "DOC_438F6D5F",
+          "document_name": "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx",
+          "chunk_index": 3,
+          "score": -8.4632,
+          "text_preview": "6. Data Protection Impact Assessment\nA DPIA is mandatory before launching any processing that involves:\nSystematic and extensive automated evaluation producing legal or similarly significant effects. …"
+        },
+        {
+          "document_id": "DOC_438F6D5F",
+          "document_name": "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx",
+          "chunk_index": 0,
+          "score": -9.8264,
+          "text_preview": "Contoso Ltd. — Data Privacy and Regulatory Compliance Guide\nDocument ID: LEG-CMP-005 | Version: 2.4 | Effective: 01 March 2025 Owner: Legal and Compliance, Office of the Data Protection Officer | Clas…"
+        }
+      ],
+      "answer_similarity": 0.9453,
+      "response_time": 12.8832,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q17",
+      "question": "What are the listed common causes of an ingestion job remaining in extracting for more than 30 minutes?",
+      "ground_truth": "The listed common causes are a PDF without a text layer when OCR is not enabled, a password-protected document, or a declared MIME type that does not match the file's actual content.",
+      "generated_answer": "Based on the provided context, the document **KB-1041** describes the symptom of an ingestion job remaining in \"extracting\" status for more than 30 minutes with no progress on the document counter [DOC_261873FF].\n\nThe context does not explicitly list multiple \"common causes\" in a bulleted format. Instead, it identifies a specific diagnostic path and a likely underlying issue related to document processing:\n1.  **Stalled Documents:** The context instructs to inspect the `stalled_documents` array via the `GET /v2/jobs/{job_id}` endpoint to identify offending `external_id` values [DOC_261873FF].\n2.  **Scanned PDFs / OCR Requirements:** It specifically notes that for **scanned PDFs**, OCR (Optical Character Recognition) may need to be enabled at the workspace level to proceed, suggesting that lack of OCR support or processing bottlenecks for scanned documents is a primary cause for the stall [DOC_261873FF].\n\nNo other causes (such as network issues, permission errors, or resource limits) are explicitly listed in the provided excerpts.\n\n[DOC_261873FF]",
+      "expected_source": "KB-TSG_Troubleshooting_Guides.docx",
+      "retrieved_sources": [
+        "KB-TSG_Troubleshooting_Guides.docx",
+        "MTG-2026-05-27_Architecture_Review_Transcript.txt",
+        "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_261873FF",
+          "document_name": "KB-TSG_Troubleshooting_Guides.docx",
+          "chunk_index": 0,
+          "score": 3.3097,
+          "text_preview": "Contoso Support Knowledge Base — Troubleshooting Guides\nDocument ID: KB-TSG-COLLECTION-2026 | Owner: Global Customer Support | Classification: Public Last reviewed: 01 June 2026 | Applies to: Cloud Pl…"
+        },
+        {
+          "document_id": "DOC_84FD7DDE",
+          "document_name": "MTG-2026-05-27_Architecture_Review_Transcript.txt",
+          "chunk_index": 1,
+          "score": -8.5164,
+          "text_preview": "[14:01] VI: Right. The customer security team reported it on the twentieth of May at 09:14 UTC. We declared SEV-2 at 09:41, so twenty-seven minutes to declaration, which is inside the thirty-minute ac…"
+        },
+        {
+          "document_id": "DOC_438F6D5F",
+          "document_name": "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx",
+          "chunk_index": 6,
+          "score": -11.1572,
+          "text_preview": "Objection to processing | 30 days | Not applicable | Privacy Operations\nGrievance redressal | Not applicable | 7 days for acknowledgement | Grievance Officer\nData category | Retention period | Trigger…"
+        },
+        {
+          "document_id": "DOC_438F6D5F",
+          "document_name": "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx",
+          "chunk_index": 4,
+          "score": -11.1742,
+          "text_preview": "7. The agreement mandates processing on documented instructions only, confidentiality undertakings, appropriate technical and organisational measures, sub-processor approval, assistance with data subj…"
+        },
+        {
+          "document_id": "DOC_84FD7DDE",
+          "document_name": "MTG-2026-05-27_Architecture_Review_Transcript.txt",
+          "chunk_index": 3,
+          "score": -11.2669,
+          "text_preview": "[14:06] RV: Why was it that close? [14:06] NB: Because the determination of whether personal data was involved took nearly a day. The audit log records that a chunk was returned but not what was in it…"
+        }
+      ],
+      "answer_similarity": 0.4744,
+      "response_time": 11.8123,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    },
+    {
+      "id": "Q18",
+      "question": "For a scanned PDF in a stalled ingestion job, what remediation does the troubleshooting guide recommend?",
+      "ground_truth": "Enable OCR at the workspace level under Settings > Ingestion > OCR fallback, then resubmit the job. OCR increases extraction time roughly threefold.",
+      "generated_answer": "For a scanned PDF causing an ingestion job to be stuck in the \"extracting\" status, the troubleshooting guide (specifically KB-1041) recommends the following remediation steps:\n\n1.  **Enable OCR:** Enable Optical Character Recognition (OCR) at the workspace level by navigating to **Settings → Ingestion → OCR fallback** [DOC_261873FF].\n2.  **Resubmit the Job:** After enabling OCR, resubmit the stalled job [DOC_261873FF].\n\n**Note:** The guide cautions that enabling OCR increases extraction time by roughly threefold [DOC_261873FF]. If the issue persists after these steps, the guide advises canceling the job via `DELETE /v2/jobs/{job_id}`, splitting the batch into groups of 100 to isolate the failing document, and attaching the job ID to a support case [DOC_261873FF].",
+      "expected_source": "KB-TSG_Troubleshooting_Guides.docx",
+      "retrieved_sources": [
+        "KB-TSG_Troubleshooting_Guides.docx",
+        "Unknown source (DOC_073920FA)",
+        "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx",
+        "MTG-2026-05-27_Architecture_Review_Transcript.txt"
+      ],
+      "retrieved_chunks": [
+        {
+          "document_id": "DOC_261873FF",
+          "document_name": "KB-TSG_Troubleshooting_Guides.docx",
+          "chunk_index": 0,
+          "score": 2.237,
+          "text_preview": "Contoso Support Knowledge Base — Troubleshooting Guides\nDocument ID: KB-TSG-COLLECTION-2026 | Owner: Global Customer Support | Classification: Public Last reviewed: 01 June 2026 | Applies to: Cloud Pl…"
+        },
+        {
+          "document_id": "DOC_261873FF",
+          "document_name": "KB-TSG_Troubleshooting_Guides.docx",
+          "chunk_index": 1,
+          "score": 0.3762,
+          "text_preview": "For scanned PDFs, enable OCR at the workspace level under Settings → Ingestion → OCR fallback. Re-submit the job. OCR increases extraction time roughly threefold. For password-protected files, remove …"
+        },
+        {
+          "document_id": "DOC_073920FA",
+          "document_name": "Unknown source (DOC_073920FA)",
+          "chunk_index": 6,
+          "score": -10.9613,
+          "text_preview": "[Slide 6]\nPROPOSED SYSTEM\nEXISTING WORKFLOW (Fragmented)\nKeyword search on scholarly databases\nManual PDF reading and note-taking\nHand-written synthesis and comparison\nManual bibliography formatting\nL…"
+        },
+        {
+          "document_id": "DOC_97F6A491",
+          "document_name": "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx",
+          "chunk_index": 2,
+          "score": -11.2685,
+          "text_preview": "6. Scheduled Maintenance\nStandard maintenance windows are Saturdays 18:00 to 22:00 UTC. Contoso provides 10 calendar days' notice for standard maintenance and 48 hours' notice for emergency maintenanc…"
+        },
+        {
+          "document_id": "DOC_84FD7DDE",
+          "document_name": "MTG-2026-05-27_Architecture_Review_Transcript.txt",
+          "chunk_index": 3,
+          "score": -11.3027,
+          "text_preview": "[14:06] RV: Why was it that close? [14:06] NB: Because the determination of whether personal data was involved took nearly a day. The audit log records that a chunk was returned but not what was in it…"
+        }
+      ],
+      "answer_similarity": 0.6831,
+      "response_time": 11.7032,
+      "retrieval_pass": true,
+      "error": null,
+      "model_used": "qwen/qwen3.8-27b",
+      "provider": "groq"
+    }
+  ]
+}

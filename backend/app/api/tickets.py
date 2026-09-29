@@ -55,7 +55,9 @@ from app.services.ticket_service import (
     get_ticket_detail_enriched,
     get_ticket_statistics,
     get_ticketing_config,
+    list_manager_tickets,
     list_tickets_scoped,
+    list_user_tickets,
     new_ticket_id,
     resolve_ticket as svc_resolve_ticket,
     update_ticket as svc_update_ticket,
@@ -119,6 +121,13 @@ def update_config(
 # ── Ticket Creation ────────────────────────────────────────────────────────────
 
 @router.post(
+    "",
+    response_model=TicketDetail,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a support ticket manually",
+    include_in_schema=False,
+)
+@router.post(
     "/",
     response_model=TicketDetail,
     status_code=status.HTTP_201_CREATED,
@@ -137,7 +146,7 @@ def create_ticket_manual(
     ticket = Ticket(
         ticket_id=ticket_id,
         query_id=body.query_id,
-        user_id=uuid.UUID(body.user_id) if body.user_id else current_user.id,
+        user_id=current_user.id,
         title=body.title,
         description=body.description,
         original_question=body.original_question,
@@ -239,6 +248,52 @@ def list_tickets(
 
 
 @router.get(
+    "/my",
+    response_model=TicketListResponse,
+    summary="Get the current user's tickets",
+)
+def list_my_tickets(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(Permission.TICKET_VIEW_OWN)),
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
+) -> TicketListResponse:
+    tickets, total = list_user_tickets(db, current_user, skip=skip, limit=limit)
+    return TicketListResponse(
+        total=total,
+        skip=skip,
+        limit=limit,
+        tickets=[TicketListItem.model_validate(ticket) for ticket in tickets],
+    )
+
+
+@router.get(
+    "/manager",
+    response_model=TicketListResponse,
+    summary="Get tickets assigned to or managed by the current Domain Manager",
+)
+def list_manager_tickets_endpoint(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(Permission.TICKET_VIEW_DOMAIN)),
+    caller_role: Role = Depends(current_role),
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
+) -> TicketListResponse:
+    if caller_role != Role.DOMAIN_MANAGER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This endpoint is available to Domain Managers only.",
+        )
+    tickets, total = list_manager_tickets(db, current_user, skip=skip, limit=limit)
+    return TicketListResponse(
+        total=total,
+        skip=skip,
+        limit=limit,
+        tickets=[TicketListItem.model_validate(ticket) for ticket in tickets],
+    )
+
+
+@router.get(
     "/dashboard",
     response_model=TicketDashboardResponse,
     summary="Admin Panel Ticket Dashboard Analytics & SLA Metrics",
@@ -332,12 +387,12 @@ def get_ticket_detail(
     "/{ticket_id}",
     response_model=TicketDetail,
     summary="Update a ticket status, priority, assignee, or resolution",
-)
 def update_ticket_endpoint(
     ticket_id: str,
     body: TicketUpdateRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(
+    include_in_schema=False,
         require_permission(
             Permission.TICKET_ASSIGN,
             Permission.TICKET_RESOLVE,
@@ -436,6 +491,12 @@ def update_ticket_endpoint(
     response_model=TicketDetail,
     summary="Assign or reassign a ticket to a domain expert",
 )
+@router.put(
+    "/{ticket_id}/assign",
+    response_model=TicketDetail,
+    summary="Assign or reassign a ticket to a domain expert",
+    include_in_schema=False,
+)
 def assign_ticket_endpoint(
     ticket_id: str,
     body: TicketAssignActionRequest,
@@ -511,6 +572,12 @@ def priority_ticket_endpoint(
     "/{ticket_id}/status",
     response_model=TicketDetail,
     summary="Change ticket lifecycle status",
+)
+@router.put(
+    "/{ticket_id}/status",
+    response_model=TicketDetail,
+    summary="Change ticket lifecycle status",
+    include_in_schema=False,
 )
 def status_ticket_endpoint(
     ticket_id: str,

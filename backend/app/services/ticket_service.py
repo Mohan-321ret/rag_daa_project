@@ -32,6 +32,7 @@ from app.core.permissions import Permission, Role, role_has_any_permission
 from app.models.audit_log import AuditLog
 from app.models.domain import Domain
 from app.models.domain_routing_config import DomainRoutingConfig
+from app.models.document import Document
 from app.models.feedback import Feedback
 from app.models.query_log import QueryLog
 from app.models.system_setting import SystemSetting
@@ -155,8 +156,10 @@ def can_user_access_ticket(
     if ticket.user_id and str(ticket.user_id) == str(current_user.id):
         return True
 
-    # Assigned expert can access
+    # Assigned expert or manager can access
     if ticket.assigned_to and str(ticket.assigned_to) == str(current_user.id):
+        return True
+    if ticket.assigned_manager_id and str(ticket.assigned_manager_id) == str(current_user.id):
         return True
 
     # Domain Manager scoping check
@@ -169,10 +172,6 @@ def can_user_access_ticket(
             if authorized_names and ticket.domain and ticket.domain.lower() in authorized_names:
                 return True
         return False
-
-    # Reviewer permissions
-    if role_has_any_permission(caller_role, (Permission.TICKET_VIEW_DOMAIN,)):
-        return True
 
     return False
 
@@ -188,7 +187,7 @@ def get_ticket_confidence_threshold(db: Optional[Session] = None) -> float:
                 return float(row.value)
         except Exception as exc:
             logger.debug("[Ticket Config] Failed to read threshold from DB: %s", exc)
-    return float(getattr(settings, "ticket_confidence_threshold", 0.70))
+    return float(settings.ticket_confidence_threshold)
 
 
 def is_ticketing_enabled(db: Optional[Session] = None) -> bool:
@@ -303,12 +302,18 @@ def create_ticket_from_low_confidence(
     intent: Optional[str] = None,
     entities: Optional[list] = None,
     source_document_ids: Optional[List[str]] = None,
+    source_chunks: Optional[List[dict]] = None,
+    preserve_open_status: bool = False,
 ) -> Tuple[Optional[Ticket], Optional[str]]:
     """
     Automatically creates a ticket when confidence < threshold.
     Applies deduplication and 6-tier domain routing.
     """
-    threshold = confidence_threshold or get_ticket_confidence_threshold(db)
+    threshold = (
+        get_ticket_confidence_threshold(db)
+        if confidence_threshold is None
+        else float(confidence_threshold)
+    )
     user_message = getattr(
         settings,
         "ticket_user_message",
@@ -332,19 +337,28 @@ def create_ticket_from_low_confidence(
         if not priority:
             priority = _calculate_priority_from_confidence(confidence_score)
 
-        # Deduplication check
-        existing = (
-            db.query(Ticket)
-            .filter(
-                func.lower(Ticket.original_question) == original_question.strip().lower(),
-                Ticket.status.in_([
-                    TicketStatus.OPEN.value,
-                    TicketStatus.NEEDS_TRIAGE.value,
-                    TicketStatus.ROUTED.value,
-                ]),
+        # A retry with the same request ID must return the original ticket,
+        # without incrementing occurrence_count or mutating its contents.
+        existing_request = None
+        if query_id:
+            existing_request = (
+                db.query(Ticket).filter(Ticket.query_id == query_id).first()
             )
-            .first()
+        if existing_request:
+            return existing_request, user_message
+
+        # Preserve repeated-question aggregation, but never merge tickets
+        # across users.
+        existing_query = db.query(Ticket).filter(
+            func.lower(Ticket.user_query) == original_question.strip().lower(),
+            Ticket.status.in_([
+                TicketStatus.OPEN.value,
+                TicketStatus.NEEDS_TRIAGE.value,
+                TicketStatus.ROUTED.value,
+            ]),
+            Ticket.user_id == user_uuid if user_uuid is not None else Ticket.user_id.is_(None),
         )
+        existing = existing_query.first()
 
         if existing:
             existing.occurrence_count += 1
@@ -353,6 +367,28 @@ def create_ticket_from_low_confidence(
                 existing.priority = priority
             if generated_answer and len(generated_answer) > len(existing.generated_answer or ""):
                 existing.generated_answer = generated_answer
+            if source_document_ids:
+                try:
+                    prior_ids = json.loads(existing.source_document_ids or "[]")
+                except (TypeError, ValueError):
+                    prior_ids = []
+                merged_ids = list(dict.fromkeys([*prior_ids, *source_document_ids]))
+                existing.source_document_ids = json.dumps(merged_ids)
+                existing.documents = (
+                    db.query(Document)
+                    .filter(Document.document_id.in_(merged_ids))
+                    .all()
+                )
+            if source_chunks:
+                try:
+                    prior_chunks = json.loads(existing.source_chunks or "[]")
+                except (TypeError, ValueError):
+                    prior_chunks = []
+                merged_chunks = {
+                    (chunk.get("document_id"), chunk.get("chunk_index")): chunk
+                    for chunk in [*prior_chunks, *source_chunks]
+                }
+                existing.source_chunks = json.dumps(list(merged_chunks.values()))
             existing.updated_at = datetime.now(timezone.utc)
             db.commit()
             db.refresh(existing)
@@ -371,6 +407,7 @@ def create_ticket_from_low_confidence(
             f"Threshold: {threshold * 100:.2f}%"
         )
 
+        source_document_ids = list(dict.fromkeys(source_document_ids or []))
         ticket = Ticket(
             ticket_id=ticket_id,
             query_id=query_id,
@@ -386,56 +423,80 @@ def create_ticket_from_low_confidence(
             domain=domain or getattr(settings, "ticket_default_domain", "General"),
             status=TicketStatus.OPEN.value,
             source_document_ids=json.dumps(source_document_ids) if source_document_ids else None,
+            source_chunks=json.dumps(source_chunks) if source_chunks else None,
         )
         db.add(ticket)
         db.flush()
+        if source_document_ids:
+            ticket.documents = (
+                db.query(Document)
+                .filter(Document.document_id.in_(source_document_ids))
+                .all()
+            )
 
         # Phase 11: Domain routing
         if getattr(settings, "domain_routing_enabled", True):
             try:
-                from app.services.domain_router_service import classify_domain, route_ticket as apply_routing
-                import asyncio
+                if preserve_open_status:
+                    from app.services.ticket_assignment_service import assign_ticket_to_domain_manager
 
-                try:
-                    loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    loop = None
-
-                if loop and loop.is_running():
-                    routing_result = _classify_domain_sync(
-                        db, original_question, str(user_id) if user_id else None,
-                        intent, entities, source_document_ids, domain,
-                    )
-                else:
-                    routing_result = asyncio.run(classify_domain(
+                    assign_ticket_to_domain_manager(
                         db,
+                        ticket,
                         query_text=original_question,
                         user_id=str(user_id) if user_id else None,
                         intent=intent,
                         entities=entities,
                         source_document_ids=source_document_ids,
                         explicit_domain=domain,
-                    ))
+                    )
+                else:
+                    from app.services.domain_router_service import classify_domain, route_ticket as apply_routing
+                    import asyncio
 
-                apply_routing(db, ticket, routing_result)
-                _log_ticket_audit(
-                    db,
-                    action="ticket_triage_needed" if routing_result.needs_triage else "ticket_routed",
-                    ticket=ticket,
-                    actor_id=user_uuid,
-                    detail=(
-                        f"ticket_id={ticket.ticket_id} | "
-                        f"domain={routing_result.domain_key or 'none'} | "
-                        f"confidence={routing_result.confidence:.2f} | "
-                        f"method={routing_result.method} | "
-                        f"reasoning={routing_result.reasoning}"
+                    try:
+                        loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        loop = None
+
+                    if loop and loop.is_running():
+                        routing_result = _classify_domain_sync(
+                            db, original_question, str(user_id) if user_id else None,
+                            intent, entities, source_document_ids, domain,
+                        )
+                    else:
+                        routing_result = asyncio.run(classify_domain(
+                            db,
+                            query_text=original_question,
+                            user_id=str(user_id) if user_id else None,
+                            intent=intent,
+                            entities=entities,
+                            source_document_ids=source_document_ids,
+                            explicit_domain=domain,
+                        ))
+
+                    apply_routing(db, ticket, routing_result)
+                    _log_ticket_audit(
+                        db,
+                        action="ticket_triage_needed" if routing_result.needs_triage else "ticket_routed",
+                        ticket=ticket,
+                        actor_id=user_uuid,
+                        detail=(
+                            f"ticket_id={ticket.ticket_id} | "
+                            f"domain={routing_result.domain_key or 'none'} | "
+                            f"confidence={routing_result.confidence:.2f} | "
+                            f"method={routing_result.method} | "
+                            f"reasoning={routing_result.reasoning}"
+                        ),
                     ),
-                )
             except Exception as route_exc:
                 logger.error(
                     "[Ticket] Domain routing failed for ticket %s: %s",
                     ticket_id, route_exc
                 )
+
+        if preserve_open_status:
+            ticket.status = TicketStatus.OPEN.value
 
         db.commit()
         db.refresh(ticket)
@@ -543,6 +604,36 @@ def get_ticket_detail_enriched(
 
 # ── Scoped List & Multi-Filter Querying ───────────────────────────────────────
 
+def list_user_tickets(
+    db: Session, user: User, skip: int = 0, limit: int = 50
+) -> Tuple[List[Ticket], int]:
+    """Return only tickets owned by the authenticated user."""
+    query = db.query(Ticket).filter(Ticket.user_id == user.id)
+    total = query.count()
+    tickets = query.order_by(Ticket.created_at.desc()).offset(skip).limit(limit).all()
+    return tickets, total
+
+
+def list_manager_tickets(
+    db: Session, manager: User, skip: int = 0, limit: int = 50
+) -> Tuple[List[Ticket], int]:
+    """Return tickets assigned to this manager or their authorized domains."""
+    domain_ids = get_user_authorized_domain_ids(db, manager, Role.DOMAIN_MANAGER)
+    domain_names = get_user_authorized_domain_names(db, manager, Role.DOMAIN_MANAGER)
+    scopes = [
+        Ticket.assigned_manager_id == manager.id,
+        Ticket.assigned_to == str(manager.id),
+    ]
+    if domain_ids:
+        scopes.append(Ticket.routed_domain_id.in_(domain_ids))
+    if domain_names:
+        scopes.append(func.lower(Ticket.domain).in_(domain_names))
+
+    query = db.query(Ticket).filter(or_(*scopes))
+    total = query.count()
+    tickets = query.order_by(Ticket.created_at.desc()).offset(skip).limit(limit).all()
+    return tickets, total
+
 def list_tickets_scoped(
     db: Session,
     current_user: Optional[User],
@@ -580,6 +671,7 @@ def list_tickets_scoped(
         # Domain Manager can also see tickets assigned to them personally
         if current_user and hasattr(current_user, "id"):
             conditions.append(Ticket.assigned_to == str(current_user.id))
+            conditions.append(Ticket.assigned_manager_id == current_user.id)
 
         if conditions:
             q = q.filter(or_(*conditions))
@@ -587,8 +679,6 @@ def list_tickets_scoped(
         else:
             q = q.filter(Ticket.user_id == current_user.id if current_user else None)
             scope = "own"
-    elif role_has_any_permission(caller_role, (Permission.TICKET_VIEW_DOMAIN,)):
-        scope = "reviewer"
     elif current_user and hasattr(current_user, "id") and current_user.id is not None:
         q = q.filter(Ticket.user_id == current_user.id)
         scope = "own"
@@ -902,6 +992,7 @@ def assign_ticket(
     prev_assignee = ticket.assigned_to
     if assigned_to.strip().lower() in ("unassigned", "none", "null", ""):
         ticket.assigned_to = None
+        ticket.assigned_manager_id = None
         ticket.assigned_at = None
         ticket.status = TicketStatus.OPEN.value if ticket.status == TicketStatus.ASSIGNED.value else ticket.status
     else:
@@ -911,6 +1002,9 @@ def assign_ticket(
             if not target_user:
                 return None
             ticket.assigned_to = str(target_user.id)
+            ticket.assigned_manager_id = (
+                target_user.id if target_user.role == Role.DOMAIN_MANAGER.value else None
+            )
             ticket.assigned_at = datetime.now(timezone.utc)
             if ticket.status in (TicketStatus.OPEN.value, TicketStatus.ROUTED.value, TicketStatus.NEEDS_TRIAGE.value):
                 ticket.status = TicketStatus.ASSIGNED.value

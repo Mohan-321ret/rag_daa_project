@@ -189,7 +189,7 @@ class Settings(BaseSettings):
     # threshold, a review ticket is raised automatically. The threshold is
     # configurable and can be updated by admins via API.
     ticketing_enabled: bool = True
-    ticket_confidence_threshold: float = 0.5  # Min confidence to avoid ticket (0-1)
+    ticket_confidence_threshold: float = 0.2  # Min confidence to avoid ticket (0-1)
     ticket_default_priority: str = "medium"   # Priority if not calculated
     ticket_default_domain: str = "General"    # Fallback domain for tickets
     ticket_priority_cutoff_critical: float = 0.3  # confidence < this = CRITICAL

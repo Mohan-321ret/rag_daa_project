@@ -62,8 +62,10 @@ async def answer_question(
     document_id: Optional[str] = None,
     score_threshold: float = 0.0,
     model: Optional[str] = None,
+    query_id: Optional[str] = None,
+    write_query_log: bool = True,
 ) -> dict:
-    query_id = new_query_id()
+    query_id = query_id or new_query_id()
     started_at = time.perf_counter()
     logger.info(
         "[RAG] %s Query='%s...' top_k=%d doc_filter=%s user=%s role=%s",
@@ -104,10 +106,33 @@ async def answer_question(
         }
     if store.total == 0:
         logger.warning("[RAG] Knowledge base is empty – no documents ingested yet.")
+        empty_answer = (
+            "The knowledge base is empty. Please upload documents before asking questions."
+        )
+        ticket = None
+        ticket_user_message = None
+        if analysis.intent.intent != "greeting":
+            from app.services.ticket_service import (
+                create_ticket_from_low_confidence,
+                get_ticket_confidence_threshold,
+            )
+
+            threshold = get_ticket_confidence_threshold(db)
+            ticket, ticket_user_message = create_ticket_from_low_confidence(
+                db,
+                query_id=query_id,
+                user_id=str(current_user.id),
+                original_question=query,
+                generated_answer=empty_answer,
+                confidence_score=0.0,
+                confidence_threshold=threshold,
+                evidence=f"No indexed knowledge was available. Confidence: 0.00; threshold: {threshold:.2f}.",
+                intent=analysis.intent.intent,
+                entities=analysis.entities,
+                    preserve_open_status=True,
+            )
         return {
-            "answer": (
-                "The knowledge base is empty. Please upload documents before asking questions."
-            ),
+            "answer": empty_answer,
             "sources": [],
             "total_indexed": 0,
             "retrieved_chunks": 0,
@@ -120,6 +145,17 @@ async def answer_question(
             "grounding": None,
             "verification": None,
             "confidence_score": 0.0,
+            "ticket": (
+                {
+                    "id": str(ticket.id),
+                    "ticket_id": ticket.ticket_id,
+                    "domain": ticket.domain,
+                    "department": ticket.domain,
+                    "status": ticket.status,
+                    "message": ticket_user_message,
+                }
+                if ticket is not None else None
+            ),
         }
 
     # ─── Step 1: Adaptive Retrieval (Phase 8 – Module 6) ──────────────────────
@@ -208,7 +244,7 @@ async def answer_question(
     # Store step of Continuous Learning: persists this query's routing/model/
     # confidence decisions and latency so Performance Metrics and Improve
     # Routing/Retrieval have telemetry to learn from once feedback arrives.
-    if settings.query_logging_enabled:
+    if settings.query_logging_enabled and write_query_log:
         log_query(
             db,
             query_id=query_id,
@@ -269,8 +305,10 @@ async def answer_question(
                     f"Retrieval confidence: {retrieval_confidence:.2f}."
                 ),
                 source_document_ids=sorted(d for d in seen_doc_ids if d != "unknown"),
+                source_chunks=sources,
                 intent=analysis.intent.intent,
                 entities=analysis.entities,
+                preserve_open_status=True,
             )
 
     return {

@@ -61,6 +61,12 @@ yarn-error.log*
 *.faiss
 *.pkl
 models/
+!backend/app/models/
+backend/app/models/*
+!backend/app/models/ticket.py
+!backend/app/models/user.py
+!backend/app/models/domain.py
+!backend/app/models/document.py
 
 # ─── IDEs ─────────────────────────────────────────────────────────────────────
 .vscode/

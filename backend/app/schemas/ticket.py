@@ -66,6 +66,7 @@ class TicketListItem(BaseModel):
     domain: Optional[str] = None
     status: Optional[str] = "open"
     assigned_to: Optional[str] = None
+    assigned_manager_id: Optional[str] = None
     assigned_expert: Optional[UserMiniOut] = None
     assigned_at: Optional[datetime] = None
     created_at: Optional[datetime] = None
@@ -93,7 +94,7 @@ class TicketListItem(BaseModel):
     def _stringify_user_id(cls, v: object) -> Optional[str]:
         return str(v) if v is not None else None
 
-    @field_validator("assigned_to", "routed_domain_id", mode="before")
+    @field_validator("assigned_to", "assigned_manager_id", "routed_domain_id", mode="before")
     @classmethod
     def _stringify_uuid_fields(cls, v: object) -> Optional[str]:
         return str(v) if v is not None else None
@@ -151,6 +152,7 @@ class TicketDetail(BaseModel):
     domain: Optional[str] = None
     status: Optional[str] = "open"
     assigned_to: Optional[str] = None
+    assigned_manager_id: Optional[str] = None
     assigned_domain_expert: Optional[UserMiniOut] = None
     assigned_expert: Optional[UserMiniOut] = None
     assigned_at: Optional[datetime] = None
@@ -192,7 +194,7 @@ class TicketDetail(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    @field_validator("user_id", "resolver_user_id", "resolved_by", "assigned_to", "routed_domain_id", mode="before")
+    @field_validator("user_id", "resolver_user_id", "resolved_by", "assigned_to", "assigned_manager_id", "routed_domain_id", mode="before")
     @classmethod
     def _stringify_ids(cls, v: object) -> Optional[str]:
         return str(v) if v is not None else None
@@ -397,7 +399,7 @@ class TicketResolveActionRequest(BaseModel):
         ..., min_length=3, description="Verified domain expert resolution / corrected answer text"
     )
     resolution_type: str = Field(
-        ...,
+        default=ResolutionType.OTHER.value,
         description="Root cause classification: KNOWLEDGE_MISSING, RETRIEVAL_FAILURE, INCORRECT_GENERATION, OUTDATED_DOCUMENT, ACCESS_RESTRICTION, DOCUMENT_CONFLICT, USER_CLARIFICATION, OTHER",
     )
     internal_notes: Optional[str] = Field(
@@ -417,6 +419,14 @@ class TicketResolveActionRequest(BaseModel):
         if norm not in RESOLUTION_TYPES:
             raise ValueError(f"resolution_type must be one of {RESOLUTION_TYPES}")
         return norm
+
+    @field_validator("resolution")
+    @classmethod
+    def _validate_resolution(cls, v: str) -> str:
+        normalized = v.strip()
+        if len(normalized) < 3:
+            raise ValueError("resolution must contain at least 3 non-whitespace characters")
+        return normalized
 
 
 class TicketCloseActionRequest(BaseModel):

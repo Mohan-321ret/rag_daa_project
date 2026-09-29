@@ -88,6 +88,8 @@ async def rag_query(
             document_id=body.document_id,
             score_threshold=body.score_threshold,
             model=body.model,
+            query_id=query_id,
+            write_query_log=False,
         )
     except RuntimeError as exc:
         logger.error("[RAG API] Pipeline error: %s", exc)
@@ -141,10 +143,8 @@ async def rag_query(
         route_str = route.route if hasattr(route, 'route') else str(route)
 
     # Extract confidence and grounding info
-    confidence_score = None
+    confidence_score = result.get("confidence_score")
     is_grounded = False
-    if verification:
-        confidence_score = verification.confidence_score if hasattr(verification, 'confidence_score') else None
     if grounding:
         is_grounded = grounding.is_grounded if hasattr(grounding, 'is_grounded') else False
 
