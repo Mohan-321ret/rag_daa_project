@@ -283,6 +283,17 @@ class TicketCreateRequest(BaseModel):
     query_id: Optional[str] = None
     user_id: Optional[str] = None
 
+    @field_validator("priority")
+    @classmethod
+    def _valid_priority(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            normalized = v.strip().lower()
+            valid_priorities = [p.value.lower() for p in TicketPriority]
+            if normalized not in valid_priorities:
+                raise ValueError(f"priority must be one of {valid_priorities}")
+            return normalized
+        return v
+
     @model_validator(mode="after")
     def _ensure_threshold(self) -> TicketCreateRequest:
         if self.confidence_threshold is None and self.threshold is not None:

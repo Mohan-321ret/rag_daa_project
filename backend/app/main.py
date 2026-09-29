@@ -127,6 +127,7 @@ app.include_router(llm_providers_router, prefix="/api/v1")       # Admin Panel �
 app.include_router(evidence_verification_router, prefix="/api/v1")  # Phase 11 – Module 9 Evidence Verification
 app.include_router(feedback_router, prefix="/api/v1")             # Phase 12 – Module 10 Continuous Learning
 app.include_router(tickets_router, prefix="/api/v1")              # Automatic Ticketing (low-confidence review queue)
+app.include_router(tickets_router, prefix="/api")                 # Automatic Ticketing (/api/tickets alias)
 app.include_router(domain_routing_router, prefix="/api/v1")       # Phase 11 – Domain-Based Ticket Routing
 app.include_router(knowledge_updates_router, prefix="/api/v1")     # Phase 14 – Ticket-Driven Knowledge Evolution
 app.include_router(learning_router, prefix="/api/v1")              # Phase 15 – Ticketing ⇔ Continuous Learning

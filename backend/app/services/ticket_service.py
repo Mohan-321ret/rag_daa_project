@@ -162,15 +162,18 @@ def can_user_access_ticket(
     if ticket.assigned_manager_id and str(ticket.assigned_manager_id) == str(current_user.id):
         return True
 
-    # Domain Manager scoping check
-    if caller_role == Role.DOMAIN_MANAGER:
+    # Domain Manager / Domain Reviewer scoping check
+    if caller_role in (Role.DOMAIN_MANAGER, Role.HR, Role.ANALYST) or role_has_any_permission(caller_role, (Permission.TICKET_VIEW_DOMAIN,)):
         authorized_ids = get_user_authorized_domain_ids(db, current_user, caller_role)
-        if authorized_ids is not None:
-            if ticket.routed_domain_id and ticket.routed_domain_id in authorized_ids:
+        authorized_names = get_user_authorized_domain_names(db, current_user, caller_role)
+        if (authorized_ids and len(authorized_ids) > 0) or (authorized_names and len(authorized_names) > 0):
+            if ticket.routed_domain_id and authorized_ids and ticket.routed_domain_id in authorized_ids:
                 return True
-            authorized_names = get_user_authorized_domain_names(db, current_user, caller_role)
-            if authorized_names and ticket.domain and ticket.domain.lower() in authorized_names:
+            if ticket.domain and authorized_names and ticket.domain.lower() in authorized_names:
                 return True
+            return False
+        if role_has_any_permission(caller_role, (Permission.TICKET_VIEW_DOMAIN,)):
+            return True
         return False
 
     return False
@@ -659,7 +662,7 @@ def list_tickets_scoped(
     # 1. Apply RBAC Domain Scoping
     if caller_role in (Role.PLATFORM_OWNER, Role.SUPER_ADMIN):
         scope = "global"
-    elif caller_role == Role.DOMAIN_MANAGER:
+    elif caller_role in (Role.DOMAIN_MANAGER, Role.HR, Role.ANALYST) or role_has_any_permission(caller_role, (Permission.TICKET_VIEW_DOMAIN,)):
         authorized_ids = get_user_authorized_domain_ids(db, current_user, caller_role)
         authorized_names = get_user_authorized_domain_names(db, current_user, caller_role)
 
@@ -668,7 +671,6 @@ def list_tickets_scoped(
             conditions.append(Ticket.routed_domain_id.in_(authorized_ids))
         if authorized_names:
             conditions.append(func.lower(Ticket.domain).in_(authorized_names))
-        # Domain Manager can also see tickets assigned to them personally
         if current_user and hasattr(current_user, "id"):
             conditions.append(Ticket.assigned_to == str(current_user.id))
             conditions.append(Ticket.assigned_manager_id == current_user.id)
@@ -676,6 +678,8 @@ def list_tickets_scoped(
         if conditions:
             q = q.filter(or_(*conditions))
             scope = "domain_managed"
+        elif role_has_any_permission(caller_role, (Permission.TICKET_VIEW_DOMAIN,)):
+            scope = "domain_global"
         else:
             q = q.filter(Ticket.user_id == current_user.id if current_user else None)
             scope = "own"
@@ -996,20 +1000,26 @@ def assign_ticket(
         ticket.assigned_at = None
         ticket.status = TicketStatus.OPEN.value if ticket.status == TicketStatus.ASSIGNED.value else ticket.status
     else:
+        target_user = None
         try:
             target_uid = uuid.UUID(assigned_to)
             target_user = db.query(User).filter(User.id == target_uid, User.is_active.is_(True)).first()
-            if not target_user:
-                return None
-            ticket.assigned_to = str(target_user.id)
-            ticket.assigned_manager_id = (
-                target_user.id if target_user.role == Role.DOMAIN_MANAGER.value else None
-            )
-            ticket.assigned_at = datetime.now(timezone.utc)
-            if ticket.status in (TicketStatus.OPEN.value, TicketStatus.ROUTED.value, TicketStatus.NEEDS_TRIAGE.value):
-                ticket.status = TicketStatus.ASSIGNED.value
         except (ValueError, TypeError):
+            pass
+
+        if not target_user:
+            target_user = db.query(User).filter(func.lower(User.email) == assigned_to.strip().lower(), User.is_active.is_(True)).first()
+
+        if not target_user:
             return None
+
+        ticket.assigned_to = str(target_user.id)
+        ticket.assigned_manager_id = (
+            target_user.id if target_user.role == Role.DOMAIN_MANAGER.value else None
+        )
+        ticket.assigned_at = datetime.now(timezone.utc)
+        if ticket.status in (TicketStatus.OPEN.value, TicketStatus.ROUTED.value, TicketStatus.NEEDS_TRIAGE.value):
+            ticket.status = TicketStatus.ASSIGNED.value
 
     if notes:
         ticket.feedback = f"[{current_user.email} - Assign Note]: {notes}" + (f"\n{ticket.feedback}" if ticket.feedback else "")
@@ -1303,13 +1313,22 @@ def update_ticket(
             ticket.assigned_to = None
             ticket.assigned_at = None
         else:
+            target_user = None
             try:
-                ticket.assigned_to = str(uuid.UUID(assigned_to))
-                ticket.assigned_at = datetime.now(timezone.utc)
-                if ticket.status == TicketStatus.OPEN.value:
-                    ticket.status = TicketStatus.ASSIGNED.value
+                target_uid = uuid.UUID(assigned_to)
+                target_user = db.query(User).filter(User.id == target_uid, User.is_active.is_(True)).first()
             except (ValueError, TypeError):
                 pass
+            if not target_user:
+                target_user = db.query(User).filter(func.lower(User.email) == assigned_to.strip().lower(), User.is_active.is_(True)).first()
+
+            if target_user:
+                ticket.assigned_to = str(target_user.id)
+                ticket.assigned_at = datetime.now(timezone.utc)
+                if ticket.status in (TicketStatus.OPEN.value, TicketStatus.ROUTED.value, TicketStatus.NEEDS_TRIAGE.value):
+                    ticket.status = TicketStatus.ASSIGNED.value
+            else:
+                ticket.assigned_to = assigned_to
 
     if resolution is not None:
         ticket.resolution = resolution or None

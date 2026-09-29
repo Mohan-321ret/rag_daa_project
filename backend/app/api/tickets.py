@@ -387,12 +387,13 @@ def get_ticket_detail(
     "/{ticket_id}",
     response_model=TicketDetail,
     summary="Update a ticket status, priority, assignee, or resolution",
+    include_in_schema=False,
+)
 def update_ticket_endpoint(
     ticket_id: str,
     body: TicketUpdateRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(
-    include_in_schema=False,
         require_permission(
             Permission.TICKET_ASSIGN,
             Permission.TICKET_RESOLVE,
