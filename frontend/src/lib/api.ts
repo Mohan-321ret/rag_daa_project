@@ -895,6 +895,7 @@ export const queryLogsApi = {
 export type TicketStatus = 'open' | 'needs_triage' | 'routed' | 'assigned' | 'in_progress' | 'in_review' | 'resolved' | 'closed' | 'rejected' | 'dismissed'
 
 export type ResolutionType =
+  | 'TEXT'
   | 'KNOWLEDGE_MISSING'
   | 'RETRIEVAL_FAILURE'
   | 'INCORRECT_GENERATION'
@@ -905,6 +906,11 @@ export type ResolutionType =
   | 'OTHER'
 
 export const RESOLUTION_TYPE_LABELS: Record<ResolutionType, { label: string; description: string; color: string }> = {
+  TEXT: {
+    label: 'Text Resolution',
+    description: 'Textual answer provided directly by Domain Manager.',
+    color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25',
+  },
   KNOWLEDGE_MISSING: {
     label: 'Knowledge Missing',
     description: 'Information is missing from the knowledge base.',
@@ -1065,9 +1071,37 @@ export const ticketsApi = {
     const qs = params.toString()
     return get<TicketListResponse>(`/tickets/${qs ? `?${qs}` : ''}`)
   },
+  listManager: (opts?: { skip?: number; limit?: number }) => {
+    const params = new URLSearchParams()
+    if (opts?.skip !== undefined) params.set('skip', String(opts.skip))
+    if (opts?.limit !== undefined) params.set('limit', String(opts.limit))
+    const qs = params.toString()
+    return get<TicketListResponse>(`/tickets/manager${qs ? `?${qs}` : ''}`)
+  },
+  listMy: (opts?: { skip?: number; limit?: number }) => {
+    const params = new URLSearchParams()
+    if (opts?.skip !== undefined) params.set('skip', String(opts.skip))
+    if (opts?.limit !== undefined) params.set('limit', String(opts.limit))
+    const qs = params.toString()
+    return get<TicketListResponse>(`/tickets/my${qs ? `?${qs}` : ''}`)
+  },
+  dashboard: (domain?: string) => {
+    const qs = domain ? `?domain=${encodeURIComponent(domain)}` : ''
+    return get<any>(`/tickets/dashboard${qs}`)
+  },
   stats: () => get<TicketStatsResponse>('/tickets/stats'),
   get: (ticketId: string) => get<TicketOut>(`/tickets/${ticketId}`),
   update: (ticketId: string, body: TicketUpdate) => patch<TicketOut>(`/tickets/${ticketId}`, body),
+  updateStatus: (ticketId: string, status: string, notes?: string) =>
+    request<TicketOut>(`/tickets/${ticketId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, notes }),
+    }),
+  assign: (ticketId: string, assignedTo: string, notes?: string) =>
+    request<TicketOut>(`/tickets/${ticketId}/assign`, {
+      method: 'PUT',
+      body: JSON.stringify({ assigned_to: assignedTo, notes }),
+    }),
   resolve: (ticketId: string, body: TicketResolveRequest) => post<TicketOut>(`/tickets/${ticketId}/resolve`, body),
   close: (ticketId: string, body?: { feedback?: string }) => post<TicketOut>(`/tickets/${ticketId}/close`, body),
   notes: (ticketId: string, notes: string) => post<TicketOut>(`/tickets/${ticketId}/notes`, { notes }),

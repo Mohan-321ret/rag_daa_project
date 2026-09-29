@@ -670,13 +670,29 @@ def resolve_ticket_endpoint(
             detail=f"Ticket '{ticket_id}' not found or access denied.",
         )
 
+    # Validate resolution text is non-empty
+    if not body.resolution or not body.resolution.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Resolution text cannot be empty.",
+        )
+
+    # Validate ticket is not already resolved or closed
+    if ticket.status in (TicketStatus.RESOLVED.value, TicketStatus.CLOSED.value):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Ticket '{ticket_id}' is already resolved.",
+        )
+
+    res_type = body.resolution_type or "TEXT"
+
     updated = svc_resolve_ticket(
         db=db,
         ticket_id=ticket_id,
         resolution=body.resolution,
         current_user=current_user,
         caller_role=caller_role,
-        resolution_type=body.resolution_type,
+        resolution_type=res_type,
         internal_notes=body.internal_notes,
         supporting_evidence=body.supporting_evidence,
         supporting_document_ids=body.supporting_document_ids,

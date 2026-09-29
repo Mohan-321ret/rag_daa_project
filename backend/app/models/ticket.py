@@ -78,8 +78,9 @@ ticket_documents = Table(
 
 class ResolutionType(str, Enum):
     """
-    Standard resolution root cause classifications for domain expert ticket resolution (Phase 13).
+    Standard resolution root cause classifications for domain expert ticket resolution (Phase 13 & 2.6).
     """
+    TEXT = "TEXT"                                    # Textual answer entered directly by Domain Manager
     KNOWLEDGE_MISSING = "KNOWLEDGE_MISSING"          # Information not present in knowledge base
     RETRIEVAL_FAILURE = "RETRIEVAL_FAILURE"          # Relevant docs in KB, but retrieval missed them
     INCORRECT_GENERATION = "INCORRECT_GENERATION"    # Retrieval was good, but LLM hallucinated / answered wrong

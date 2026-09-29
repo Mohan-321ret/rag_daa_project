@@ -38,6 +38,7 @@ from app.models.query_log import QueryLog
 from app.models.system_setting import SystemSetting
 from app.models.ticket import (
     RESOLUTION_TYPES,
+    ResolutionFormat,
     ResolutionType,
     Ticket,
     TicketPriority,
@@ -1135,14 +1136,17 @@ def resolve_ticket(
         return None
 
     # Validate resolution type
-    norm_res_type = (resolution_type or ResolutionType.OTHER.value).strip().upper()
+    norm_res_type = (resolution_type or ResolutionType.TEXT.value).strip().upper()
     if norm_res_type not in RESOLUTION_TYPES:
-        norm_res_type = ResolutionType.OTHER.value
+        norm_res_type = ResolutionType.TEXT.value
 
     ticket.resolution = resolution.strip()
     ticket.resolution_type = norm_res_type
+    ticket.resolution_format = ResolutionFormat.TEXT.value
     ticket.status = TicketStatus.RESOLVED.value
-    ticket.resolved_at = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)
+    ticket.resolved_at = now
+    ticket.updated_at = now
     ticket.resolver_user_id = current_user.id
 
     if supporting_evidence is not None:

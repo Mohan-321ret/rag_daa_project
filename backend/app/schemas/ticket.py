@@ -405,13 +405,13 @@ class TicketStatusActionRequest(BaseModel):
 
 
 class TicketResolveActionRequest(BaseModel):
-    """Request to resolve a support ticket with domain expert verified answer (Phase 13)."""
+    """Request to resolve a support ticket with domain expert verified answer (Phase 13 & 2.6)."""
     resolution: str = Field(
-        ..., min_length=3, description="Verified domain expert resolution / corrected answer text"
+        ..., min_length=1, description="Verified domain expert resolution / textual answer"
     )
     resolution_type: str = Field(
-        default=ResolutionType.OTHER.value,
-        description="Root cause classification: KNOWLEDGE_MISSING, RETRIEVAL_FAILURE, INCORRECT_GENERATION, OUTDATED_DOCUMENT, ACCESS_RESTRICTION, DOCUMENT_CONFLICT, USER_CLARIFICATION, OTHER",
+        default=ResolutionType.TEXT.value,
+        description="Root cause / format classification: TEXT, KNOWLEDGE_MISSING, RETRIEVAL_FAILURE, INCORRECT_GENERATION, OUTDATED_DOCUMENT, ACCESS_RESTRICTION, DOCUMENT_CONFLICT, USER_CLARIFICATION, OTHER",
     )
     internal_notes: Optional[str] = Field(
         None, description="Optional internal reviewer notes or rationale"
