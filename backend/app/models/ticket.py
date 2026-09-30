@@ -78,9 +78,11 @@ ticket_documents = Table(
 
 class ResolutionType(str, Enum):
     """
-    Standard resolution root cause classifications for domain expert ticket resolution (Phase 13 & 2.6).
+    Standard resolution root cause & format classifications for domain expert ticket resolution (Phase 13, 2.6, 2.8).
     """
     TEXT = "TEXT"                                    # Textual answer entered directly by Domain Manager
+    FILE = "FILE"                                    # Resolved via uploaded knowledge-base document
+    BOTH = "BOTH"                                    # Resolved via textual answer + uploaded document
     KNOWLEDGE_MISSING = "KNOWLEDGE_MISSING"          # Information not present in knowledge base
     RETRIEVAL_FAILURE = "RETRIEVAL_FAILURE"          # Relevant docs in KB, but retrieval missed them
     INCORRECT_GENERATION = "INCORRECT_GENERATION"    # Retrieval was good, but LLM hallucinated / answered wrong
@@ -172,6 +174,7 @@ class Ticket(Base):
         "User", back_populates="managed_tickets", foreign_keys=[assigned_manager_id]
     )
     documents = relationship("Document", secondary=ticket_documents, back_populates="tickets")
+    attachments = relationship("TicketAttachment", back_populates="ticket", cascade="all, delete-orphan")
     assigned_at = Column(DateTime(timezone=True), nullable=True)  # When assigned
     
     # ── Resolution (Phase 13: Domain Expert Resolution) ───────────────────────

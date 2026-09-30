@@ -16,7 +16,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.core.permissions import Permission, Role, role_has_any_permission
@@ -25,6 +25,7 @@ from app.models.ticket import TICKET_STATUSES, Ticket, TicketPriority, TicketSta
 from app.models.user import User
 from app.schemas.ticket import (
     TicketAssignActionRequest,
+    TicketAttachmentResponse,
     TicketCloseActionRequest,
     TicketConfigResponse,
     TicketConfigUpdateRequest,
@@ -41,6 +42,11 @@ from app.schemas.ticket import (
     TicketUpdateRequest,
 )
 from app.services.auth_service import current_role, get_current_user, require_permission
+from app.services.ticket_attachment_service import (
+    get_ticket_attachment_detail,
+    list_ticket_attachments,
+    upload_ticket_attachment,
+)
 from app.services.ticket_service import (
     add_internal_notes as svc_add_notes,
     assign_ticket as svc_assign_ticket,
@@ -670,13 +676,6 @@ def resolve_ticket_endpoint(
             detail=f"Ticket '{ticket_id}' not found or access denied.",
         )
 
-    # Validate resolution text is non-empty
-    if not body.resolution or not body.resolution.strip():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Resolution text cannot be empty.",
-        )
-
     # Validate ticket is not already resolved or closed
     if ticket.status in (TicketStatus.RESOLVED.value, TicketStatus.CLOSED.value):
         raise HTTPException(
@@ -684,15 +683,14 @@ def resolve_ticket_endpoint(
             detail=f"Ticket '{ticket_id}' is already resolved.",
         )
 
-    res_type = body.resolution_type or "TEXT"
-
     updated = svc_resolve_ticket(
         db=db,
         ticket_id=ticket_id,
         resolution=body.resolution,
         current_user=current_user,
         caller_role=caller_role,
-        resolution_type=res_type,
+        resolution_type=body.resolution_type,
+        attachment_id=body.attachment_id,
         internal_notes=body.internal_notes,
         supporting_evidence=body.supporting_evidence,
         supporting_document_ids=body.supporting_document_ids,
@@ -826,4 +824,95 @@ def create_knowledge_update_from_ticket_endpoint(
             detail=f"Ticket '{ticket_id}' not found or failed to create knowledge update request.",
         )
     return KnowledgeUpdateRequestOut.model_validate(req)
+
+
+# ── Knowledge Base Attachment Endpoints (Phase 2.7) ───────────────────────────
+
+@router.post(
+    "/{ticket_id}/upload-kb",
+    response_model=TicketAttachmentResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Upload knowledge-base file for a ticket (Phase 2.7)",
+)
+@router.post(
+    "/{ticket_id}/attachments",
+    response_model=TicketAttachmentResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Upload knowledge-base file for a ticket (Phase 2.7)",
+    include_in_schema=False,
+)
+async def upload_ticket_kb_file_endpoint(
+    ticket_id: str,
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(..., description="Knowledge-base file (PDF, DOCX, TXT, PPTX, Images)"),
+    sync: bool = Query(default=False, description="Process ingestion synchronously"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_permission(
+            Permission.TICKET_RESOLVE,
+            Permission.TICKET_ASSIGN,
+            any_of=True,
+        )
+    ),
+    caller_role: Role = Depends(current_role),
+) -> TicketAttachmentResponse:
+    """
+    Allows a Domain Manager or authorized user to upload a knowledge-base file related to a ticket.
+    Validates file format, ingests text, generates embeddings, updates vector DB, and links to ticket.
+    Track processing status via GET /tickets/{ticket_id}/attachments.
+    """
+    file_bytes = await file.read()
+    attachment = upload_ticket_attachment(
+        db=db,
+        ticket_id=ticket_id,
+        file_bytes=file_bytes,
+        original_filename=file.filename or "uploaded_doc",
+        current_user=current_user,
+        caller_role=caller_role,
+        background_tasks=background_tasks,
+        sync_processing=sync,
+    )
+    return TicketAttachmentResponse.model_validate(attachment)
+
+
+@router.get(
+    "/{ticket_id}/attachments",
+    response_model=list[TicketAttachmentResponse],
+    summary="List all knowledge-base attachments uploaded for a ticket",
+)
+def list_ticket_attachments_endpoint(
+    ticket_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(Permission.TICKET_VIEW_OWN)),
+    caller_role: Role = Depends(current_role),
+) -> list[TicketAttachmentResponse]:
+    """Lists all KB attachments uploaded for the ticket along with processing status."""
+    attachments = list_ticket_attachments(
+        db=db, ticket_id=ticket_id, current_user=current_user, caller_role=caller_role
+    )
+    return [TicketAttachmentResponse.model_validate(a) for a in attachments]
+
+
+@router.get(
+    "/{ticket_id}/attachments/{attachment_id}",
+    response_model=TicketAttachmentResponse,
+    summary="Get status and details of a single ticket attachment",
+)
+def get_ticket_attachment_endpoint(
+    ticket_id: str,
+    attachment_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(Permission.TICKET_VIEW_OWN)),
+    caller_role: Role = Depends(current_role),
+) -> TicketAttachmentResponse:
+    """Returns details and processing status of a ticket KB attachment."""
+    attachment = get_ticket_attachment_detail(
+        db=db,
+        ticket_id=ticket_id,
+        attachment_id=attachment_id,
+        current_user=current_user,
+        caller_role=caller_role,
+    )
+    return TicketAttachmentResponse.model_validate(attachment)
+
 

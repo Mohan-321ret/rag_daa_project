@@ -69,6 +69,8 @@ const post = <T>(path: string, body?: unknown) =>
   request<T>(path, { method: 'POST', body: body !== undefined ? JSON.stringify(body) : undefined })
 const patch = <T>(path: string, body: unknown) =>
   request<T>(path, { method: 'PATCH', body: JSON.stringify(body) })
+const uploadFile = <T>(path: string, body: FormData) =>
+  request<T>(path, { method: 'POST', body })
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -896,6 +898,8 @@ export type TicketStatus = 'open' | 'needs_triage' | 'routed' | 'assigned' | 'in
 
 export type ResolutionType =
   | 'TEXT'
+  | 'FILE'
+  | 'BOTH'
   | 'KNOWLEDGE_MISSING'
   | 'RETRIEVAL_FAILURE'
   | 'INCORRECT_GENERATION'
@@ -910,6 +914,16 @@ export const RESOLUTION_TYPE_LABELS: Record<ResolutionType, { label: string; des
     label: 'Text Resolution',
     description: 'Textual answer provided directly by Domain Manager.',
     color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25',
+  },
+  FILE: {
+    label: 'File-Based',
+    description: 'Resolved using uploaded knowledge-base document.',
+    color: 'bg-blue-500/15 text-blue-400 border-blue-500/25',
+  },
+  BOTH: {
+    label: 'File & Explanation',
+    description: 'Resolved using both textual answer and uploaded document.',
+    color: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/25',
   },
   KNOWLEDGE_MISSING: {
     label: 'Knowledge Missing',
@@ -983,6 +997,8 @@ export interface TicketOut {
   assigned_expert?: { id: string; email?: string; full_name?: string; role?: string } | null
   resolution?: string | null
   resolution_type?: ResolutionType | string | null
+  resolution_format?: string | null
+  attachments?: TicketAttachment[]
   supporting_evidence?: string | null
   supporting_document_ids?: string[]
   resolved_by?: string | null
@@ -1039,8 +1055,9 @@ export interface TicketUpdate {
 }
 
 export interface TicketResolveRequest {
-  resolution: string
-  resolution_type: ResolutionType | string
+  resolution?: string
+  resolution_type?: ResolutionType | string
+  attachment_id?: string
   internal_notes?: string
   supporting_evidence?: string
   supporting_document_ids?: string[]
@@ -1107,6 +1124,27 @@ export const ticketsApi = {
   notes: (ticketId: string, notes: string) => post<TicketOut>(`/tickets/${ticketId}/notes`, { notes }),
   createKnowledgeUpdate: (ticketId: string, body?: Partial<KnowledgeUpdateRequestCreate>) =>
     post<KnowledgeUpdateRequest>(`/tickets/${ticketId}/create-knowledge-update`, body || {}),
+  uploadKb: (ticketId: string, file: File, sync?: boolean) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return uploadFile<TicketAttachment>(`/tickets/${ticketId}/upload-kb${sync ? '?sync=true' : ''}`, formData)
+  },
+  listAttachments: (ticketId: string) => get<TicketAttachment[]>(`/tickets/${ticketId}/attachments`),
+}
+
+export interface TicketAttachment {
+  attachment_id: string
+  ticket_id: string
+  document_id?: string | null
+  job_id?: string | null
+  original_filename: string
+  file_type: string
+  file_size?: number | null
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  error_message?: string | null
+  uploaded_by_id?: string | null
+  created_at: string
+  updated_at: string
 }
 
 export const feedbackApi = {

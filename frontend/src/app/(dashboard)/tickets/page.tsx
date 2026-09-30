@@ -5,13 +5,13 @@ import {
   Ticket as TicketIcon, ChevronRight, Loader2, AlertTriangle,
   UserCheck, CheckCircle2, RotateCcw, FileText, Check,
   Sparkles, Layers, BookOpen, ShieldCheck, Tag, Info, GitBranch,
-  Play, RefreshCw, Search, User, Shield, X, HelpCircle
+  Play, RefreshCw, Search, User, Shield, X, HelpCircle, Upload, Paperclip
 } from 'lucide-react'
 import { Can, PageHeader, ConfidenceMeter, EmptyState, Modal, Btn } from '@/components/shared/index'
 import { ticketsApi, ApiError } from '@/lib/api'
 import type {
   TicketOut, TicketStatsResponse, TicketStatus,
-  ResolutionType, KnowledgeUpdateRequest,
+  ResolutionType, KnowledgeUpdateRequest, TicketAttachment,
 } from '@/lib/api'
 import { RESOLUTION_TYPE_LABELS } from '@/lib/api'
 import { formatDateTime } from '@/lib/utils'
@@ -71,7 +71,11 @@ export default function DomainManagerTicketDashboard() {
 
   // Resolution Modal State
   const [resolveTicketModal, setResolveTicketModal] = useState<TicketOut | null>(null)
-  const [resolutionType, setResolutionType] = useState<ResolutionType>('KNOWLEDGE_MISSING')
+  const [resolutionType, setResolutionType] = useState<ResolutionType>('TEXT')
+  const [attachments, setAttachments] = useState<TicketAttachment[]>([])
+  const [selectedAttachmentId, setSelectedAttachmentId] = useState<string | null>(null)
+  const [uploadingAttachment, setUploadingAttachment] = useState(false)
+  const [attachmentError, setAttachmentError] = useState<string | null>(null)
   const [correctedAnswer, setCorrectedAnswer] = useState('')
   const [supportingEvidence, setSupportingEvidence] = useState('')
   const [supportingDocsInput, setSupportingDocsInput] = useState('')
@@ -150,14 +154,13 @@ export default function DomainManagerTicketDashboard() {
   }
 
   // Action: Open [Resolve] Modal
-  const openResolveModal = (ticket: TicketOut) => {
+  const openResolveModal = async (ticket: TicketOut) => {
     setResolveTicketModal(ticket)
     setCorrectedAnswer(ticket.resolution || ticket.corrected_answer || '')
-    setResolutionType(
-      (ticket.resolution_type as ResolutionType) && RESOLUTION_TYPE_LABELS[ticket.resolution_type as ResolutionType]
-        ? (ticket.resolution_type as ResolutionType)
-        : 'TEXT'
-    )
+    const initialResType = (ticket.resolution_type as ResolutionType) && RESOLUTION_TYPE_LABELS[ticket.resolution_type as ResolutionType]
+      ? (ticket.resolution_type as ResolutionType)
+      : 'TEXT'
+    setResolutionType(initialResType)
     setSupportingEvidence(ticket.supporting_evidence || '')
     setSupportingDocsInput(
       ticket.supporting_document_ids && ticket.supporting_document_ids.length > 0
@@ -165,13 +168,72 @@ export default function DomainManagerTicketDashboard() {
         : ''
     )
     setInternalNotes(ticket.feedback || ticket.reviewer_notes || '')
+    setAttachmentError(null)
+
+    // Load attachments for this ticket
+    try {
+      const atts = await ticketsApi.listAttachments(ticket.ticket_id)
+      setAttachments(atts || [])
+      if (atts && atts.length > 0) {
+        setSelectedAttachmentId(atts[0].attachment_id)
+        if (initialResType === 'TEXT') {
+          setResolutionType('FILE')
+        }
+      } else {
+        setSelectedAttachmentId(null)
+      }
+    } catch {
+      setAttachments([])
+      setSelectedAttachmentId(null)
+    }
+  }
+
+  // Upload KB File in Resolution Modal
+  const handleUploadKBFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!resolveTicketModal || !e.target.files?.[0]) return
+    const file = e.target.files[0]
+    setUploadingAttachment(true)
+    setAttachmentError(null)
+    try {
+      const newAtt = await ticketsApi.uploadKb(resolveTicketModal.ticket_id, file, true)
+      setAttachments(prev => [newAtt, ...prev.filter(a => a.attachment_id !== newAtt.attachment_id)])
+      setSelectedAttachmentId(newAtt.attachment_id)
+      if (resolutionType === 'TEXT') {
+        setResolutionType('FILE')
+      }
+      setSuccessMsg(`Document ${file.name} uploaded successfully and ingested into Knowledge Base.`)
+    } catch (err) {
+      setAttachmentError(err instanceof ApiError ? err.message : 'Failed to upload document.')
+    } finally {
+      setUploadingAttachment(false)
+      e.target.value = ''
+    }
   }
 
   // Action: [Resolve] submit
   const handleResolveSubmit = async () => {
     if (!resolveTicketModal) return
-    if (!correctedAnswer.trim()) {
-      setError('Please enter a resolution answer before marking as resolved.')
+
+    const targetAtt = attachments.find(a => a.attachment_id === selectedAttachmentId) || (attachments.length > 0 ? attachments[0] : null)
+
+    // Strictly enforce resolution gating if FILE or BOTH is selected
+    if (resolutionType === 'FILE' || resolutionType === 'BOTH') {
+      if (!targetAtt && attachments.length === 0) {
+        setError('File-based resolution requires an uploaded knowledge-base document.')
+        return
+      }
+      if (targetAtt && (targetAtt.status === 'PENDING' || targetAtt.status === 'PROCESSING')) {
+        setError(`Document '${targetAtt.original_filename}' processing is currently in progress (${targetAtt.status}). Ticket cannot be resolved until ingestion succeeds.`)
+        return
+      }
+      if (targetAtt && targetAtt.status === 'FAILED') {
+        setError(`Document processing failed for '${targetAtt.original_filename}': ${targetAtt.error_message || 'Ingestion failed'}. Please re-upload a valid document before resolving.`)
+        return
+      }
+    }
+
+    if ((resolutionType === 'TEXT' || resolutionType === 'BOTH') && !correctedAnswer.trim()) {
+      setError('Please enter a textual resolution answer.')
       return
     }
 
@@ -186,8 +248,9 @@ export default function DomainManagerTicketDashboard() {
 
     try {
       const resolvedTicket = await ticketsApi.resolve(resolveTicketModal.ticket_id, {
-        resolution: correctedAnswer.trim(),
+        resolution: correctedAnswer.trim() || undefined,
         resolution_type: resolutionType,
+        attachment_id: targetAtt?.attachment_id || selectedAttachmentId || undefined,
         supporting_evidence: supportingEvidence.trim() || undefined,
         supporting_document_ids: docIds.length > 0 ? docIds : undefined,
         internal_notes: internalNotes.trim() || undefined,
@@ -289,8 +352,12 @@ export default function DomainManagerTicketDashboard() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Domain Manager Ticket Dashboard"
-        description="Phase 2.5: Manage low-confidence escalations, track domain workload, inspect RAG answers, and execute resolution workflows."
+        title={isDomainManagerOrAdmin ? "Domain Manager Ticket Dashboard" : "My Support Tickets"}
+        description={
+          isDomainManagerOrAdmin
+            ? "Manage low-confidence escalations, track domain workload, inspect RAG answers, and execute resolution workflows."
+            : "View support tickets generated from your low-confidence AI queries and track their domain manager resolutions."
+        }
       />
 
       {/* Summary Cards */}
@@ -342,7 +409,7 @@ export default function DomainManagerTicketDashboard() {
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search by ticket ID, user query, domain, or manager..."
+            placeholder="Search by ticket ID, original query, domain, or resolution..."
             className="w-full bg-white dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 rounded-xl pl-9 pr-4 py-2 text-xs outline-none focus:border-blue-500 transition-all"
           />
         </div>
@@ -388,13 +455,13 @@ export default function DomainManagerTicketDashboard() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
           <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
-          <p className="text-xs text-gray-500 dark:text-white/40">Loading Domain Manager tickets...</p>
+          <p className="text-xs text-gray-500 dark:text-white/40">Loading tickets...</p>
         </div>
       ) : filteredTickets.length === 0 ? (
         <EmptyState
           icon={<TicketIcon className="w-6 h-6" />}
           title="No tickets found"
-          description="There are currently no tickets matching your active filter criteria."
+          description="There are currently no tickets matching your active search or filter criteria."
         />
       ) : (
         <div className="bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.07] rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
@@ -403,21 +470,21 @@ export default function DomainManagerTicketDashboard() {
               <thead>
                 <tr className="border-b border-gray-200 dark:border-white/[0.06] bg-gray-50/70 dark:bg-white/[0.02] text-gray-500 dark:text-white/40 font-semibold uppercase tracking-wider">
                   <th className="py-3 px-4">Ticket Number</th>
-                  <th className="py-3 px-4">User Query</th>
+                  <th className="py-3 px-4">Original Query</th>
                   <th className="py-3 px-4">Confidence</th>
                   <th className="py-3 px-4">Domain</th>
-                  <th className="py-3 px-4">Priority</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4">Created Date</th>
-                  <th className="py-3 px-4">Assigned Manager</th>
+                  <th className="py-3 px-4">Resolution</th>
+                  <th className="py-3 px-4">Resolved Date</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
                 {filteredTickets.map(ticket => {
-                  const assignedManager = ticket.assigned_expert?.full_name || ticket.assigned_expert?.email || ticket.assigned_to || 'Unassigned'
                   const isWorking = ticket.status === 'in_progress' || ticket.status === 'in_review'
                   const isResolved = ticket.status === 'resolved' || ticket.status === 'closed'
+                  const resolutionText = ticket.resolution || ticket.corrected_answer
 
                   return (
                     <tr
@@ -430,7 +497,7 @@ export default function DomainManagerTicketDashboard() {
                         {ticket.ticket_id}
                       </td>
 
-                      {/* User Query */}
+                      {/* Original Query */}
                       <td className="py-3.5 px-4 max-w-xs">
                         <p className="text-gray-800 dark:text-white/80 font-medium truncate">
                           {ticket.original_question || ticket.query_text || ticket.user_question || ticket.title}
@@ -449,16 +516,9 @@ export default function DomainManagerTicketDashboard() {
                         </span>
                       </td>
 
-                      {/* Priority */}
-                      <td className="py-3.5 px-4">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border uppercase ${priorityStyles[ticket.priority?.toLowerCase() || 'medium'] || priorityStyles.medium}`}>
-                          {ticket.priority || 'medium'}
-                        </span>
-                      </td>
-
                       {/* Status */}
                       <td className="py-3.5 px-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${statusStyles[ticket.status] || 'bg-gray-100 text-gray-600 dark:bg-gray-500/15 dark:text-gray-400 border-gray-200 dark:border-gray-500/20'}`}>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${statusStyles[ticket.status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
                           {statusLabels[ticket.status] || ticket.status}
                         </span>
                       </td>
@@ -468,52 +528,70 @@ export default function DomainManagerTicketDashboard() {
                         {formatDateTime(ticket.created_at)}
                       </td>
 
-                      {/* Assigned Manager */}
-                      <td className="py-3.5 px-4 text-gray-700 dark:text-white/70">
-                        <div className="flex items-center gap-1.5">
-                          <User className="w-3 h-3 text-gray-400" />
-                          <span className="truncate max-w-[120px]">{assignedManager}</span>
-                        </div>
+                      {/* Resolution */}
+                      <td className="py-3.5 px-4 max-w-[180px]">
+                        {resolutionText ? (
+                          <span className="truncate block font-medium text-emerald-600 dark:text-emerald-400">
+                            {resolutionText}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 dark:text-white/30 italic">Pending</span>
+                        )}
+                      </td>
+
+                      {/* Resolved Date */}
+                      <td className="py-3.5 px-4 text-gray-500 dark:text-white/40 whitespace-nowrap">
+                        {ticket.resolved_at ? formatDateTime(ticket.resolved_at) : '-'}
                       </td>
 
                       {/* Action buttons on row */}
                       <td className="py-3.5 px-4 text-right whitespace-nowrap" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
-                          {!isWorking && !isResolved && (
+                          {isDomainManagerOrAdmin ? (
+                            <>
+                              {!isWorking && !isResolved && (
+                                <button
+                                  disabled={actionLoading === ticket.ticket_id}
+                                  onClick={() => handleStartWorking(ticket.ticket_id)}
+                                  className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 text-[11px] font-semibold transition-all flex items-center gap-1 disabled:opacity-50"
+                                  title="Start working on ticket"
+                                >
+                                  <Play className="w-3 h-3 fill-current" />
+                                  <span>Start Working</span>
+                                </button>
+                              )}
+
+                              {!isResolved && (
+                                <button
+                                  onClick={() => openResolveModal(ticket)}
+                                  className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 text-[11px] font-semibold transition-all flex items-center gap-1"
+                                  title="Resolve ticket"
+                                >
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  <span>Resolve</span>
+                                </button>
+                              )}
+
+                              {isResolved && (
+                                <button
+                                  disabled={actionLoading === ticket.ticket_id}
+                                  onClick={() => handleReopen(ticket.ticket_id)}
+                                  className="px-2.5 py-1 rounded-lg bg-gray-500/10 text-gray-600 dark:text-gray-300 hover:bg-gray-500/20 border border-gray-500/20 text-[11px] font-semibold transition-all flex items-center gap-1 disabled:opacity-50"
+                                  title="Reopen ticket"
+                                >
+                                  <RotateCcw className="w-3 h-3" />
+                                  <span>Reopen</span>
+                                </button>
+                              )}
+                            </>
+                          ) : (
                             <button
-                              disabled={actionLoading === ticket.ticket_id}
-                              onClick={() => handleStartWorking(ticket.ticket_id)}
-                              className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 text-[11px] font-semibold transition-all flex items-center gap-1 disabled:opacity-50"
-                              title="Start working on ticket"
+                              onClick={() => handleOpenDetail(ticket)}
+                              className="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 text-[11px] font-semibold transition-all flex items-center gap-1"
                             >
-                              <Play className="w-3 h-3 fill-current" />
-                              <span>Start Working</span>
+                              <span>View Details</span>
                             </button>
                           )}
-
-                          {!isResolved && (
-                            <button
-                              onClick={() => openResolveModal(ticket)}
-                              className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 text-[11px] font-semibold transition-all flex items-center gap-1"
-                              title="Resolve ticket"
-                            >
-                              <CheckCircle2 className="w-3 h-3" />
-                              <span>Resolve</span>
-                            </button>
-                          )}
-
-                          {isResolved && (
-                            <button
-                              disabled={actionLoading === ticket.ticket_id}
-                              onClick={() => handleReopen(ticket.ticket_id)}
-                              className="px-2.5 py-1 rounded-lg bg-gray-500/10 text-gray-600 dark:text-gray-300 hover:bg-gray-500/20 border border-gray-500/20 text-[11px] font-semibold transition-all flex items-center gap-1 disabled:opacity-50"
-                              title="Reopen ticket"
-                            >
-                              <RotateCcw className="w-3 h-3" />
-                              <span>Reopen</span>
-                            </button>
-                          )}
-
                           <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors ml-1" />
                         </div>
                       </td>
@@ -628,58 +706,110 @@ export default function DomainManagerTicketDashboard() {
                 </div>
               </div>
 
-              {/* Verified Resolution if available */}
-              {selectedTicket.resolution && (
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Verified Resolution Answer
+              {/* Verified Manager Resolution if available */}
+              {(selectedTicket.resolution || selectedTicket.corrected_answer) && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5" /> Domain Expert Resolution Answer
+                    </p>
+                    {selectedTicket.resolved_at && (
+                      <span className="text-[10px] text-gray-500 dark:text-white/40">
+                        Resolved: {formatDateTime(selectedTicket.resolved_at)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-3.5 bg-emerald-50 dark:bg-emerald-500/[0.07] border border-emerald-200 dark:border-emerald-500/20 rounded-xl text-emerald-900 dark:text-emerald-300 font-medium whitespace-pre-wrap leading-relaxed">
+                    {selectedTicket.resolution || selectedTicket.corrected_answer}
+                  </div>
+                  {selectedTicket.resolution_type && (
+                    <div className="flex items-center gap-2 text-[11px]">
+                      <span className="text-gray-500 dark:text-white/40">Resolution Mode:</span>
+                      <span className="px-2 py-0.5 rounded-md font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        {selectedTicket.resolution_type} {selectedTicket.resolution_format ? `(${selectedTicket.resolution_format})` : ''}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Knowledge Base Document Information */}
+              {selectedTicket.attachments && selectedTicket.attachments.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                    <Paperclip className="w-3.5 h-3.5" /> Resolution Knowledge-Base Documents
                   </p>
-                  <div className="p-3.5 bg-emerald-50 dark:bg-emerald-500/[0.07] border border-emerald-200 dark:border-emerald-500/20 rounded-xl text-emerald-900 dark:text-emerald-300 font-medium whitespace-pre-wrap">
-                    {selectedTicket.resolution}
+                  <div className="space-y-1.5">
+                    {selectedTicket.attachments.map(att => (
+                      <div key={att.attachment_id} className="p-2.5 rounded-xl border border-blue-200/70 dark:border-blue-500/20 bg-blue-50/40 dark:bg-blue-500/5 flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileText className="w-4 h-4 text-blue-500 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="font-semibold text-gray-800 dark:text-white truncate text-xs">
+                              {att.original_filename}
+                            </p>
+                            <p className="text-[10px] text-gray-400 dark:text-white/40 font-mono">
+                              ID: {att.attachment_id} • {att.file_type} {att.file_size ? `• ${(att.file_size / 1024).toFixed(1)} KB` : ''}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Indexed in KB
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
 
-              {/* Details Modal Action Bar */}
+              {/* Details Modal Action Bar (Gated by RBAC) */}
               <div className="flex items-center justify-between flex-wrap gap-2 pt-4 border-t border-gray-200 dark:border-white/[0.06]">
+                {isDomainManagerOrAdmin ? (
+                  <div className="flex items-center gap-2">
+                    {selectedTicket.status !== 'in_progress' && selectedTicket.status !== 'in_review' && selectedTicket.status !== 'resolved' && (
+                      <button
+                        disabled={actionLoading === selectedTicket.ticket_id}
+                        onClick={() => handleStartWorking(selectedTicket.ticket_id)}
+                        className="px-3.5 py-2 rounded-xl bg-amber-500 text-white hover:bg-amber-600 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-current" /> Start Working
+                      </button>
+                    )}
+
+                    {selectedTicket.status !== 'resolved' && selectedTicket.status !== 'closed' && (
+                      <button
+                        onClick={() => openResolveModal(selectedTicket)}
+                        className="px-3.5 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Resolve
+                      </button>
+                    )}
+
+                    {(selectedTicket.status === 'resolved' || selectedTicket.status === 'closed' || selectedTicket.status === 'in_progress') && (
+                      <button
+                        disabled={actionLoading === selectedTicket.ticket_id}
+                        onClick={() => handleReopen(selectedTicket.ticket_id)}
+                        className="px-3.5 py-2 rounded-xl bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.1] text-gray-800 dark:text-white/80 hover:bg-gray-200 dark:hover:bg-white/[0.1] text-xs font-medium flex items-center gap-1.5 transition-all disabled:opacity-50"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" /> Reopen
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-[11px] text-gray-400 dark:text-white/40 italic">
+                    Ticket view mode · Read-only access
+                  </div>
+                )}
+
                 <div className="flex items-center gap-2">
-                  {selectedTicket.status !== 'in_progress' && selectedTicket.status !== 'in_review' && selectedTicket.status !== 'resolved' && (
+                  {isDomainManagerOrAdmin && (
                     <button
-                      disabled={actionLoading === selectedTicket.ticket_id}
-                      onClick={() => handleStartWorking(selectedTicket.ticket_id)}
-                      className="px-3.5 py-2 rounded-xl bg-amber-500 text-white hover:bg-amber-600 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50"
+                      onClick={() => openKnowledgeUpdateModal(selectedTicket)}
+                      className="px-3 py-1.5 text-xs text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/20 rounded-xl hover:bg-violet-100 dark:hover:bg-violet-500/20 font-medium flex items-center gap-1.5 transition-all"
                     >
-                      <Play className="w-3.5 h-3.5 fill-current" /> Start Working
+                      <GitBranch className="w-3.5 h-3.5" /> Stage Knowledge Update
                     </button>
                   )}
-
-                  {selectedTicket.status !== 'resolved' && selectedTicket.status !== 'closed' && (
-                    <button
-                      onClick={() => openResolveModal(selectedTicket)}
-                      className="px-3.5 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Resolve
-                    </button>
-                  )}
-
-                  {(selectedTicket.status === 'resolved' || selectedTicket.status === 'closed' || selectedTicket.status === 'in_progress') && (
-                    <button
-                      disabled={actionLoading === selectedTicket.ticket_id}
-                      onClick={() => handleReopen(selectedTicket.ticket_id)}
-                      className="px-3.5 py-2 rounded-xl bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.1] text-gray-800 dark:text-white/80 hover:bg-gray-200 dark:hover:bg-white/[0.1] text-xs font-medium flex items-center gap-1.5 transition-all disabled:opacity-50"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" /> Reopen
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => openKnowledgeUpdateModal(selectedTicket)}
-                    className="px-3 py-1.5 text-xs text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/20 rounded-xl hover:bg-violet-100 dark:hover:bg-violet-500/20 font-medium flex items-center gap-1.5 transition-all"
-                  >
-                    <GitBranch className="w-3.5 h-3.5" /> Stage Knowledge Update
-                  </button>
 
                   <Btn variant="ghost" size="sm" onClick={() => setSelectedTicket(null)}>
                     Close
@@ -701,13 +831,107 @@ export default function DomainManagerTicketDashboard() {
         >
           <div className="space-y-4 text-left text-xs">
             <p className="text-gray-500 dark:text-white/50">
-              Provide an authoritative domain-verified resolution answer for ticket <span className="font-mono text-gray-800 dark:text-white/80">{resolveTicketModal.ticket_id}</span>.
+              Provide an authoritative domain-verified resolution answer or upload a knowledge-base document to resolve ticket <span className="font-mono text-gray-800 dark:text-white/80">{resolveTicketModal.ticket_id}</span>.
             </p>
 
-            {/* Root Cause Selection */}
+            {/* Knowledge Base File Upload & Attachment Section */}
+            <div className="p-3.5 rounded-xl border border-blue-200 dark:border-blue-500/20 bg-blue-50/50 dark:bg-blue-500/5 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="font-semibold text-gray-800 dark:text-white/90 flex items-center gap-1.5 text-xs">
+                  <Paperclip className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> Attached Knowledge Base Document
+                </label>
+
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs cursor-pointer transition-all shadow-sm">
+                  {uploadingAttachment ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Ingesting...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-3.5 h-3.5" /> Upload File (PDF/DOCX/TXT/PPTX)
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept=".pdf,.docx,.txt,.pptx,.png,.jpg,.jpeg"
+                    onChange={handleUploadKBFile}
+                    disabled={uploadingAttachment}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
+              {attachmentError && (
+                <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>{attachmentError}</span>
+                </div>
+              )}
+
+              {attachments.length === 0 ? (
+                <div className="text-center py-3 border border-dashed border-gray-300 dark:border-white/10 rounded-lg text-gray-400 dark:text-white/40 text-xs">
+                  No knowledge-base document attached yet. Upload a document above to resolve via file ingestion.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {attachments.map(att => {
+                    const isSelected = selectedAttachmentId === att.attachment_id || attachments.length === 1
+                    const isCompleted = att.status === 'COMPLETED'
+                    const isProcessing = att.status === 'PENDING' || att.status === 'PROCESSING'
+                    const isFailed = att.status === 'FAILED'
+
+                    return (
+                      <div
+                        key={att.attachment_id}
+                        onClick={() => setSelectedAttachmentId(att.attachment_id)}
+                        className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all flex items-center justify-between ${
+                          isSelected
+                            ? 'bg-white dark:bg-white/10 border-blue-500 shadow-sm ring-1 ring-blue-500/30'
+                            : 'bg-white/60 dark:bg-white/[0.02] border-gray-200 dark:border-white/10 opacity-80'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <FileText className="w-4 h-4 text-blue-500 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="font-semibold text-gray-800 dark:text-white truncate text-xs">
+                              {att.original_filename}
+                            </p>
+                            <p className="text-[10px] text-gray-400 dark:text-white/40 font-mono">
+                              ID: {att.attachment_id} • {att.file_type} {att.file_size ? `• ${(att.file_size / 1024).toFixed(1)} KB` : ''}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          {isCompleted && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" /> Indexed
+                            </span>
+                          )}
+
+                          {isProcessing && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 animate-pulse">
+                              <Loader2 className="w-3 h-3 animate-spin" /> Ingesting ({att.status})
+                            </span>
+                          )}
+
+                          {isFailed && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3" /> Failed
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Root Cause & Resolution Type Selection */}
             <div>
               <label className="font-semibold text-gray-800 dark:text-white/80 mb-1.5 block flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-blue-500" /> Root Cause / Resolution Type <span className="text-rose-500">*</span>
+                <Tag className="w-3.5 h-3.5 text-blue-500" /> Resolution Mode / Category <span className="text-rose-500">*</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {(Object.keys(RESOLUTION_TYPE_LABELS) as ResolutionType[]).map(rType => {
@@ -735,16 +959,17 @@ export default function DomainManagerTicketDashboard() {
               </div>
             </div>
 
-            {/* Corrected Answer */}
+            {/* Corrected Answer Text */}
             <div>
               <label className="font-semibold text-gray-800 dark:text-white/80 mb-1.5 block flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-500" /> Corrected RAG Answer <span className="text-rose-500">*</span>
+                <Sparkles className="w-3.5 h-3.5 text-emerald-500" /> Resolution Explanation / Answer
+                {resolutionType !== 'FILE' && <span className="text-rose-500">*</span>}
               </label>
               <textarea
                 value={correctedAnswer}
                 onChange={e => setCorrectedAnswer(e.target.value)}
-                rows={4}
-                placeholder="Enter the verified authoritative answer..."
+                rows={3}
+                placeholder={resolutionType === 'FILE' ? "Optional explanation summary (auto-generated if left empty)..." : "Enter the verified authoritative resolution answer..."}
                 className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 rounded-xl px-3 py-2 text-xs outline-none focus:border-blue-500 resize-none font-sans"
               />
             </div>
@@ -787,11 +1012,49 @@ export default function DomainManagerTicketDashboard() {
               />
             </div>
 
+            {/* Status Alert for Gating */}
+            {(() => {
+              const activeAtt = attachments.find(a => a.attachment_id === selectedAttachmentId) || attachments[0]
+              if ((resolutionType === 'FILE' || resolutionType === 'BOTH') && activeAtt) {
+                if (activeAtt.status === 'PENDING' || activeAtt.status === 'PROCESSING') {
+                  return (
+                    <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-700 dark:text-amber-300 text-xs flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin shrink-0 text-amber-500" />
+                      <span>Document processing is currently in progress. Ticket resolution is locked until document ingestion completes.</span>
+                    </div>
+                  )
+                }
+                if (activeAtt.status === 'FAILED') {
+                  return (
+                    <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500 mt-0.5" />
+                      <div>
+                        <p className="font-semibold">Document Ingestion Failed</p>
+                        <p className="text-[11px] mt-0.5 opacity-90">{activeAtt.error_message || 'File extraction failed.'}</p>
+                        <p className="text-[11px] mt-1 font-medium underline">Please re-upload a valid document above to retry resolution.</p>
+                      </div>
+                    </div>
+                  )
+                }
+              }
+              return null
+            })()}
+
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-200 dark:border-white/[0.06]">
               <Btn variant="ghost" size="sm" onClick={() => setResolveTicketModal(null)} disabled={resolving}>
                 Cancel
               </Btn>
-              <Btn size="sm" onClick={handleResolveSubmit} disabled={resolving || !correctedAnswer.trim()} className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">
+              <Btn
+                size="sm"
+                onClick={handleResolveSubmit}
+                disabled={
+                  resolving ||
+                  (resolutionType !== 'FILE' && !correctedAnswer.trim()) ||
+                  ((resolutionType === 'FILE' || resolutionType === 'BOTH') &&
+                    (!attachments.length || attachments.some(a => (a.attachment_id === selectedAttachmentId || attachments.length === 1) && a.status !== 'COMPLETED')))
+                }
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-50"
+              >
                 {resolving ? 'Submitting Resolution...' : 'Submit Resolution'}
               </Btn>
             </div>

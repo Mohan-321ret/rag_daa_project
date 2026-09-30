@@ -238,4 +238,5 @@ def test_create_status_assign_and_resolve_apis(ticket_api_case):
         headers=manager_headers,
         json={"resolution": "   "},
     )
-    assert invalid_resolution.status_code == 422
+    assert invalid_resolution.status_code in (400, 422)
+

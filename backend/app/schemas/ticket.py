@@ -159,12 +159,14 @@ class TicketDetail(BaseModel):
     # Phase 13: Resolution details
     resolution: Optional[str] = None
     resolution_type: Optional[str] = None
+    resolution_format: Optional[str] = None
     resolved_at: Optional[datetime] = None
     resolver_user_id: Optional[str] = None
     resolved_by: Optional[str] = None
     resolver_user: Optional[UserMiniOut] = None
     supporting_evidence: Optional[str] = None
     supporting_document_ids: List[str] = Field(default_factory=list)
+    attachments: List[Any] = Field(default_factory=list)
     feedback: Optional[str] = None
     internal_notes: Optional[str] = None
     reviewer_notes: Optional[str] = None
@@ -405,13 +407,16 @@ class TicketStatusActionRequest(BaseModel):
 
 
 class TicketResolveActionRequest(BaseModel):
-    """Request to resolve a support ticket with domain expert verified answer (Phase 13 & 2.6)."""
-    resolution: str = Field(
-        ..., min_length=1, description="Verified domain expert resolution / textual answer"
+    """Request to resolve a support ticket with domain expert verified answer (Phase 13, 2.6, 2.8)."""
+    resolution: Optional[str] = Field(
+        None, description="Verified domain expert resolution / textual answer"
     )
-    resolution_type: str = Field(
-        default=ResolutionType.TEXT.value,
-        description="Root cause / format classification: TEXT, KNOWLEDGE_MISSING, RETRIEVAL_FAILURE, INCORRECT_GENERATION, OUTDATED_DOCUMENT, ACCESS_RESTRICTION, DOCUMENT_CONFLICT, USER_CLARIFICATION, OTHER",
+    resolution_type: Optional[str] = Field(
+        default=None,
+        description="Root cause / format classification: TEXT, FILE, BOTH, KNOWLEDGE_MISSING, RETRIEVAL_FAILURE, INCORRECT_GENERATION, OUTDATED_DOCUMENT, ACCESS_RESTRICTION, DOCUMENT_CONFLICT, USER_CLARIFICATION, OTHER",
+    )
+    attachment_id: Optional[str] = Field(
+        None, description="Optional TicketAttachment ID for file-based resolution"
     )
     internal_notes: Optional[str] = Field(
         None, description="Optional internal reviewer notes or rationale"
@@ -425,19 +430,13 @@ class TicketResolveActionRequest(BaseModel):
 
     @field_validator("resolution_type")
     @classmethod
-    def _validate_res_type(cls, v: str) -> str:
-        norm = v.strip().upper()
-        if norm not in RESOLUTION_TYPES:
-            raise ValueError(f"resolution_type must be one of {RESOLUTION_TYPES}")
-        return norm
-
-    @field_validator("resolution")
-    @classmethod
-    def _validate_resolution(cls, v: str) -> str:
-        normalized = v.strip()
-        if len(normalized) < 3:
-            raise ValueError("resolution must contain at least 3 non-whitespace characters")
-        return normalized
+    def _validate_res_type(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            norm = v.strip().upper()
+            if norm not in RESOLUTION_TYPES:
+                raise ValueError(f"resolution_type must be one of {RESOLUTION_TYPES}")
+            return norm
+        return v
 
 
 class TicketCloseActionRequest(BaseModel):
@@ -565,3 +564,29 @@ class TicketConfigUpdateRequest(BaseModel):
         elif self.threshold is None and self.ticket_confidence_threshold is not None:
             self.threshold = self.ticket_confidence_threshold
         return self
+
+
+# ── Ticket Attachment Schemas (Phase 2.7) ────────────────────────────────────
+
+class TicketAttachmentResponse(BaseModel):
+    """Details of a knowledge-base document uploaded for a ticket."""
+    attachment_id: str
+    ticket_id: str
+    document_id: Optional[str] = None
+    job_id: Optional[str] = None
+    original_filename: str
+    file_type: str
+    file_size: Optional[int] = None
+    status: str
+    error_message: Optional[str] = None
+    uploaded_by_id: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+    @field_validator("uploaded_by_id", mode="before")
+    @classmethod
+    def _stringify_uuid(cls, v: object) -> Optional[str]:
+        return str(v) if v is not None else None
+

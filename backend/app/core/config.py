@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     temp_upload_dir: str = "./data/tmp_uploads"
     doc_id_prefix: str = "DOC"
     # Comma-separated list of allowed extensions
-    allowed_extensions: str = ".pdf,.docx,.doc,.txt,.html,.htm,.pptx,.ppt,.csv,.xlsx,.xls"
+    allowed_extensions: str = ".pdf,.docx,.doc,.txt,.html,.htm,.pptx,.ppt,.csv,.xlsx,.xls,.png,.jpg,.jpeg,.tiff,.bmp,.webp"
 
     # ── Chunking (Module 2 – Phase 3) ─────────────────────────────────────────
     chunk_size: int = 1000          # target characters per chunk

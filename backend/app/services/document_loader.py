@@ -56,6 +56,8 @@ def load_document(file_path: str | Path) -> Tuple[str, float]:
             raw_text = _load_csv(path)
         elif ext in (".xlsx", ".xls"):
             raw_text = _load_excel(path)
+        elif ext in (".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".webp"):
+            raw_text = _load_image(path)
         else:
             raise ValueError(f"Unsupported file extension: '{ext}'")
 
@@ -259,3 +261,24 @@ def _load_excel(path: Path) -> str:
         raise RuntimeError(f"Excel loading failed for '{path.name}': {exc2}") from exc2
 
     raise RuntimeError(f"Excel file '{path.name}' contained no readable text.")
+
+
+# ── Image (OCR) ───────────────────────────────────────────────────────────────
+
+def _load_image(path: Path) -> str:
+    """Extract text from image files (.png, .jpg, .jpeg, .tiff, .bmp, .webp) using pytesseract."""
+    try:
+        import pytesseract
+        from PIL import Image
+        img = Image.open(str(path))
+        text = pytesseract.image_to_string(img, lang="eng", config="--psm 3")
+        if text and text.strip():
+            return text.strip()
+    except Exception as exc:
+        logger.warning("[DocumentLoader] Tesseract OCR failed for image %s: %s", path.name, exc)
+
+    raise RuntimeError(
+        f"Image text extraction failed for '{path.name}'. "
+        "Ensure Tesseract OCR is installed and the image contains readable text."
+    )
+

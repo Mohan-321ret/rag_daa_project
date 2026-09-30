@@ -35,6 +35,7 @@ def init_db() -> None:
     from app.models import knowledge_update_request  # noqa: F401  ← Phase 14: Knowledge Evolution Requests
     from app.models import learning_signal   # noqa: F401  ← Phase 15: Continuous Learning signals
     from app.models import threshold_history # noqa: F401  ← Phase 15: Threshold audit trail
+    from app.models import ticket_attachment # noqa: F401  ← Phase 2.7: Knowledge Base Update Attachments
     Base.metadata.create_all(bind=engine)
     _run_light_migrations()
     _seed_default_domains()
