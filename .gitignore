@@ -67,6 +67,7 @@ backend/app/models/*
 !backend/app/models/user.py
 !backend/app/models/domain.py
 !backend/app/models/document.py
+!backend/app/models/user_notification.py
 
 # ─── IDEs ─────────────────────────────────────────────────────────────────────
 .vscode/

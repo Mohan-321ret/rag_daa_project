@@ -221,3 +221,63 @@ def test_api_resolution_triggers_notification():
 
     finally:
         db.close()
+
+
+def test_in_app_notification_creation_and_api():
+    """Test that resolving a ticket creates an in-app notification and user can fetch/mark read."""
+    init_db()
+    db = SessionLocal()
+    set_custom_dispatcher(None)
+
+    try:
+        user = _create_test_user(db, Role.STANDARD_EMPLOYEE, "inapp_user")
+        manager = _create_test_user(db, Role.DOMAIN_MANAGER, "inapp_mgr")
+        ticket = _create_test_ticket(db, user.id, domain="HR")
+
+        mgr_token = create_access_token(str(manager.id))
+        user_token = create_access_token(str(user.id))
+        client = TestClient(app)
+
+        # 1. Resolve ticket
+        res = client.post(
+            f"/api/v1/tickets/{ticket.ticket_id}/resolve",
+            headers={"Authorization": f"Bearer {mgr_token}"},
+            json={
+                "resolution": "HR Policy Section 4.2 explains parental leave benefits.",
+                "resolution_type": "TEXT",
+            },
+        )
+        assert res.status_code == 200
+
+        # 2. Check user's in-app notifications
+        notif_res = client.get(
+            "/api/v1/notifications",
+            headers={"Authorization": f"Bearer {user_token}"},
+        )
+        assert notif_res.status_code == 200
+        data = notif_res.json()
+        assert data["total"] >= 1
+        assert data["unread_count"] >= 1
+        user_notif = data["notifications"][0]
+        assert ticket.ticket_id in user_notif["title"]
+        assert "rerun_link" in user_notif["action_data"]
+        assert "/llm?q=" in user_notif["action_data"]
+
+        # 3. Mark all as read
+        mark_res = client.post(
+            "/api/v1/notifications/mark-all-read",
+            headers={"Authorization": f"Bearer {user_token}"},
+        )
+        assert mark_res.status_code == 200
+
+        # 4. Verify unread count is now 0
+        notif_res2 = client.get(
+            "/api/v1/notifications",
+            headers={"Authorization": f"Bearer {user_token}"},
+        )
+        assert notif_res2.status_code == 200
+        assert notif_res2.json()["unread_count"] == 0
+
+    finally:
+        db.close()
+

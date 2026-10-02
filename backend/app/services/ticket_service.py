@@ -1374,7 +1374,7 @@ def resolve_ticket(
     try:
         recipient_user = db.query(User).filter(User.id == ticket.user_id).first()
         recipient_email = recipient_user.email if recipient_user else None
-        send_ticket_resolution_notification(ticket, user_email=recipient_email)
+        send_ticket_resolution_notification(ticket, user_email=recipient_email, db=db)
     except Exception as notif_exc:
         logger.error(
             "[Ticket] Failed to send ticket resolution notification for ticket %s: %s",

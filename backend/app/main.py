@@ -33,6 +33,7 @@ from app.api.tickets import router as tickets_router
 from app.api.domain_routing import router as domain_routing_router
 from app.api.knowledge_updates import router as knowledge_updates_router
 from app.api.learning import router as learning_router
+from app.api.notifications import router as notifications_router
 
 # ── Logging configuration ──────────────────────────────────────────────────────
 logging.basicConfig(
@@ -131,6 +132,7 @@ app.include_router(tickets_router, prefix="/api")                 # Automatic Ti
 app.include_router(domain_routing_router, prefix="/api/v1")       # Phase 11 – Domain-Based Ticket Routing
 app.include_router(knowledge_updates_router, prefix="/api/v1")     # Phase 14 – Ticket-Driven Knowledge Evolution
 app.include_router(learning_router, prefix="/api/v1")              # Phase 15 – Ticketing ⇔ Continuous Learning
+app.include_router(notifications_router, prefix="/api/v1")         # User In-App Notifications & Alerts
 
 
 # ── Root ──────────────────────────────────────────────────────────────────────

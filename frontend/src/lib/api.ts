@@ -1355,3 +1355,34 @@ export const learningApi = {
     return get<Record<string, unknown>>(`/learning/improvement-report${qs}`)
   },
 }
+
+// ── Notifications ────────────────────────────────────────────────────────────
+
+export interface NotificationItem {
+  id: string
+  user_id: string
+  ticket_id: string | null
+  title: string
+  message: string
+  type: 'info' | 'success' | 'warning' | 'error'
+  action_type: string | null
+  action_data: string | null
+  read: boolean
+  created_at: string
+}
+
+export interface NotificationListResponse {
+  total: number
+  unread_count: number
+  notifications: NotificationItem[]
+}
+
+export const notificationsApi = {
+  list: (skip = 0, limit = 50) =>
+    get<NotificationListResponse>(`/notifications?skip=${skip}&limit=${limit}`),
+  markAsRead: (id: string) =>
+    patch<NotificationItem>(`/notifications/${id}/read`, {}),
+  markAllRead: () =>
+    post<{ status: string; marked_read: number }>('/notifications/mark-all-read'),
+}
+

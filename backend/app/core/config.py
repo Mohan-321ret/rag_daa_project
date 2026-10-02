@@ -199,6 +199,17 @@ class Settings(BaseSettings):
     # Auto-increment ticket ID prefix
     ticket_id_prefix: str = "TKT"
 
+    # ── Notification & Email Configuration ─────────────────────────────────────
+    smtp_enabled: bool = False
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = "support@enterprise-rag.com"
+    smtp_from_name: str = "Enterprise RAG Intelligence"
+    smtp_use_tls: bool = True
+    frontend_base_url: str = "http://localhost:3000"
+
     # ── Domain-Based Ticket Routing (Phase 11) ────────────────────────────
     domain_routing_enabled: bool = True          # Master switch for auto domain routing
     domain_routing_confidence_threshold: float = 0.5  # Below this → NEEDS_TRIAGE
