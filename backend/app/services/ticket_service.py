@@ -1265,6 +1265,56 @@ def resolve_ticket(
         for d in supporting_document_ids:
             if d not in doc_ids_list:
                 doc_ids_list.append(d)
+    # Auto-index text resolution into Knowledge Base so RAG pipeline can immediately answer it
+    if has_text and not has_file:
+        try:
+            from app.schemas.document import ExtractedDocumentData
+            from app.services.evolution_service import process_document
+            
+            clean_q = "".join(c if c.isalnum() else "_" for c in (ticket.original_question or "ticket"))[:30].strip("_")
+            filename = f"resolution_{ticket.ticket_id}_{clean_q}.txt"
+            new_doc_uid = f"DOC_{uuid.uuid4().hex[:8].upper()}"
+            text_content = final_resolution_text.strip()
+            
+            # Format text so both question and answer are semantically retrievable
+            if ticket.original_question and ticket.original_question.lower() not in text_content.lower():
+                full_knowledge_text = f"Question: {ticket.original_question}\nAnswer: {text_content}"
+            else:
+                full_knowledge_text = text_content
+
+            domain_id_str = str(ticket.routed_domain_id) if ticket.routed_domain_id else None
+            
+            doc_data = ExtractedDocumentData(
+                document_id=new_doc_uid,
+                filename=filename,
+                original_filename=filename,
+                document_type="txt",
+                file_extension=".txt",
+                extracted_text=full_knowledge_text,
+                ocr_used=False,
+                word_count=len(full_knowledge_text.split()),
+                character_count=len(full_knowledge_text),
+                upload_date=datetime.now(timezone.utc),
+                author=current_user.email,
+                department=ticket.domain or "General",
+                domain_id=domain_id_str,
+                visibility="domain" if domain_id_str else "global",
+                language="en",
+            )
+            summary = process_document(
+                db=db,
+                doc_data=doc_data,
+                language_hint="en",
+                source=f"ticket_resolution:{ticket.ticket_id}",
+            )
+            saved_doc = summary.get("document")
+            if saved_doc and saved_doc not in ticket.documents:
+                ticket.documents.append(saved_doc)
+                if saved_doc.document_id not in doc_ids_list:
+                    doc_ids_list.append(saved_doc.document_id)
+        except Exception as kb_exc:
+            logger.warning("[Ticket] Failed to auto-index text resolution for ticket %s: %s", ticket.ticket_id, kb_exc)
+
     if doc_ids_list:
         ticket.supporting_document_ids = ",".join(doc_ids_list)
 

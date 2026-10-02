@@ -98,6 +98,20 @@ def chunk_document(text: str) -> List[TextChunk]:
             word_count=len(stripped.split()),
         ))
 
+    if not chunks and text.strip():
+        stripped = text.strip()
+        logger.info(
+            "[ChunkingService] Document total length (%d) is under chunk_min_length (%d), preserving as single chunk.",
+            len(stripped), settings.chunk_min_length,
+        )
+        chunks.append(TextChunk(
+            index=0,
+            text=stripped,
+            char_start=0,
+            char_end=len(stripped),
+            word_count=len(stripped.split()),
+        ))
+
     logger.info(
         "[ChunkingService] Chunked document | total_chars=%d -> %d chunks "
         "(chunk_size=%d, overlap=%d)",

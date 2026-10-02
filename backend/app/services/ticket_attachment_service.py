@@ -122,7 +122,7 @@ def _run_ticket_attachment_ingestion_job(
             department=ticket.domain,
             permissions="private",
             domain_id=domain_id_str,
-            visibility="domain",
+            visibility="domain" if domain_id_str else "global",
             owner_id=user_id,
             uploaded_by_id=user_id,
         )

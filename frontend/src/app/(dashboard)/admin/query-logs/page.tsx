@@ -11,11 +11,11 @@ import { formatDateTime } from '@/lib/utils'
 import { Btn } from '@/components/shared/index'
 
 const ROUTE_COLORS: Record<string, string> = {
-  vector: 'bg-blue-500/15 text-blue-300 border-blue-500/20',
-  bm25: 'bg-amber-500/15 text-amber-400 border-amber-500/20',
-  hybrid: 'bg-violet-500/15 text-violet-300 border-violet-500/20',
-  graph: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/20',
-  keyword: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/20',
+  vector: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/20',
+  bm25: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/20',
+  hybrid: 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/20',
+  graph: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/20',
+  keyword: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/20',
 }
 
 function ConfidencePill({ score }: { score?: number }) {
