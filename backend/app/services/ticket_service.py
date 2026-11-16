@@ -32,20 +32,25 @@ from app.core.permissions import Permission, Role, role_has_any_permission
 from app.models.audit_log import AuditLog
 from app.models.domain import Domain
 from app.models.domain_routing_config import DomainRoutingConfig
+from app.models.document import Document
 from app.models.feedback import Feedback
 from app.models.query_log import QueryLog
 from app.models.system_setting import SystemSetting
 from app.models.ticket import (
     RESOLUTION_TYPES,
+    ResolutionFormat,
     ResolutionType,
     Ticket,
     TicketPriority,
     TicketStatus,
 )
+from app.models.ticket_attachment import TicketAttachment, TicketAttachmentStatus
 from app.models.user import User
 from app.models.user_domain import UserDomain
+from app.services.ticket_notification_service import send_ticket_resolution_notification
 from app.schemas.ticket import (
     QueryHistoryOut,
+    TicketAttachmentResponse,
     TicketConfigUpdateRequest,
     TicketDetail,
     UserMiniOut,
@@ -155,24 +160,25 @@ def can_user_access_ticket(
     if ticket.user_id and str(ticket.user_id) == str(current_user.id):
         return True
 
-    # Assigned expert can access
+    # Assigned expert or manager can access
     if ticket.assigned_to and str(ticket.assigned_to) == str(current_user.id):
         return True
-
-    # Domain Manager scoping check
-    if caller_role == Role.DOMAIN_MANAGER:
-        authorized_ids = get_user_authorized_domain_ids(db, current_user, caller_role)
-        if authorized_ids is not None:
-            if ticket.routed_domain_id and ticket.routed_domain_id in authorized_ids:
-                return True
-            authorized_names = get_user_authorized_domain_names(db, current_user, caller_role)
-            if authorized_names and ticket.domain and ticket.domain.lower() in authorized_names:
-                return True
-        return False
-
-    # Reviewer permissions
-    if role_has_any_permission(caller_role, (Permission.TICKET_VIEW_DOMAIN,)):
+    if ticket.assigned_manager_id and str(ticket.assigned_manager_id) == str(current_user.id):
         return True
+
+    # Domain Manager / Domain Reviewer scoping check
+    if caller_role in (Role.DOMAIN_MANAGER, Role.HR, Role.ANALYST) or role_has_any_permission(caller_role, (Permission.TICKET_VIEW_DOMAIN,)):
+        authorized_ids = get_user_authorized_domain_ids(db, current_user, caller_role)
+        authorized_names = get_user_authorized_domain_names(db, current_user, caller_role)
+        if (authorized_ids and len(authorized_ids) > 0) or (authorized_names and len(authorized_names) > 0):
+            if ticket.routed_domain_id and authorized_ids and ticket.routed_domain_id in authorized_ids:
+                return True
+            if ticket.domain and authorized_names and ticket.domain.lower() in authorized_names:
+                return True
+            return False
+        if role_has_any_permission(caller_role, (Permission.TICKET_VIEW_DOMAIN,)):
+            return True
+        return False
 
     return False
 
@@ -188,7 +194,7 @@ def get_ticket_confidence_threshold(db: Optional[Session] = None) -> float:
                 return float(row.value)
         except Exception as exc:
             logger.debug("[Ticket Config] Failed to read threshold from DB: %s", exc)
-    return float(getattr(settings, "ticket_confidence_threshold", 0.70))
+    return float(settings.ticket_confidence_threshold)
 
 
 def is_ticketing_enabled(db: Optional[Session] = None) -> bool:
@@ -303,12 +309,18 @@ def create_ticket_from_low_confidence(
     intent: Optional[str] = None,
     entities: Optional[list] = None,
     source_document_ids: Optional[List[str]] = None,
+    source_chunks: Optional[List[dict]] = None,
+    preserve_open_status: bool = False,
 ) -> Tuple[Optional[Ticket], Optional[str]]:
     """
     Automatically creates a ticket when confidence < threshold.
     Applies deduplication and 6-tier domain routing.
     """
-    threshold = confidence_threshold or get_ticket_confidence_threshold(db)
+    threshold = (
+        get_ticket_confidence_threshold(db)
+        if confidence_threshold is None
+        else float(confidence_threshold)
+    )
     user_message = getattr(
         settings,
         "ticket_user_message",
@@ -332,19 +344,28 @@ def create_ticket_from_low_confidence(
         if not priority:
             priority = _calculate_priority_from_confidence(confidence_score)
 
-        # Deduplication check
-        existing = (
-            db.query(Ticket)
-            .filter(
-                func.lower(Ticket.original_question) == original_question.strip().lower(),
-                Ticket.status.in_([
-                    TicketStatus.OPEN.value,
-                    TicketStatus.NEEDS_TRIAGE.value,
-                    TicketStatus.ROUTED.value,
-                ]),
+        # A retry with the same request ID must return the original ticket,
+        # without incrementing occurrence_count or mutating its contents.
+        existing_request = None
+        if query_id:
+            existing_request = (
+                db.query(Ticket).filter(Ticket.query_id == query_id).first()
             )
-            .first()
+        if existing_request:
+            return existing_request, user_message
+
+        # Preserve repeated-question aggregation, but never merge tickets
+        # across users.
+        existing_query = db.query(Ticket).filter(
+            func.lower(Ticket.user_query) == original_question.strip().lower(),
+            Ticket.status.in_([
+                TicketStatus.OPEN.value,
+                TicketStatus.NEEDS_TRIAGE.value,
+                TicketStatus.ROUTED.value,
+            ]),
+            Ticket.user_id == user_uuid if user_uuid is not None else Ticket.user_id.is_(None),
         )
+        existing = existing_query.first()
 
         if existing:
             existing.occurrence_count += 1
@@ -353,6 +374,28 @@ def create_ticket_from_low_confidence(
                 existing.priority = priority
             if generated_answer and len(generated_answer) > len(existing.generated_answer or ""):
                 existing.generated_answer = generated_answer
+            if source_document_ids:
+                try:
+                    prior_ids = json.loads(existing.source_document_ids or "[]")
+                except (TypeError, ValueError):
+                    prior_ids = []
+                merged_ids = list(dict.fromkeys([*prior_ids, *source_document_ids]))
+                existing.source_document_ids = json.dumps(merged_ids)
+                existing.documents = (
+                    db.query(Document)
+                    .filter(Document.document_id.in_(merged_ids))
+                    .all()
+                )
+            if source_chunks:
+                try:
+                    prior_chunks = json.loads(existing.source_chunks or "[]")
+                except (TypeError, ValueError):
+                    prior_chunks = []
+                merged_chunks = {
+                    (chunk.get("document_id"), chunk.get("chunk_index")): chunk
+                    for chunk in [*prior_chunks, *source_chunks]
+                }
+                existing.source_chunks = json.dumps(list(merged_chunks.values()))
             existing.updated_at = datetime.now(timezone.utc)
             db.commit()
             db.refresh(existing)
@@ -371,6 +414,7 @@ def create_ticket_from_low_confidence(
             f"Threshold: {threshold * 100:.2f}%"
         )
 
+        source_document_ids = list(dict.fromkeys(source_document_ids or []))
         ticket = Ticket(
             ticket_id=ticket_id,
             query_id=query_id,
@@ -386,56 +430,80 @@ def create_ticket_from_low_confidence(
             domain=domain or getattr(settings, "ticket_default_domain", "General"),
             status=TicketStatus.OPEN.value,
             source_document_ids=json.dumps(source_document_ids) if source_document_ids else None,
+            source_chunks=json.dumps(source_chunks) if source_chunks else None,
         )
         db.add(ticket)
         db.flush()
+        if source_document_ids:
+            ticket.documents = (
+                db.query(Document)
+                .filter(Document.document_id.in_(source_document_ids))
+                .all()
+            )
 
         # Phase 11: Domain routing
         if getattr(settings, "domain_routing_enabled", True):
             try:
-                from app.services.domain_router_service import classify_domain, route_ticket as apply_routing
-                import asyncio
+                if preserve_open_status:
+                    from app.services.ticket_assignment_service import assign_ticket_to_domain_manager
 
-                try:
-                    loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    loop = None
-
-                if loop and loop.is_running():
-                    routing_result = _classify_domain_sync(
-                        db, original_question, str(user_id) if user_id else None,
-                        intent, entities, source_document_ids, domain,
-                    )
-                else:
-                    routing_result = asyncio.run(classify_domain(
+                    assign_ticket_to_domain_manager(
                         db,
+                        ticket,
                         query_text=original_question,
                         user_id=str(user_id) if user_id else None,
                         intent=intent,
                         entities=entities,
                         source_document_ids=source_document_ids,
                         explicit_domain=domain,
-                    ))
+                    )
+                else:
+                    from app.services.domain_router_service import classify_domain, route_ticket as apply_routing
+                    import asyncio
 
-                apply_routing(db, ticket, routing_result)
-                _log_ticket_audit(
-                    db,
-                    action="ticket_triage_needed" if routing_result.needs_triage else "ticket_routed",
-                    ticket=ticket,
-                    actor_id=user_uuid,
-                    detail=(
-                        f"ticket_id={ticket.ticket_id} | "
-                        f"domain={routing_result.domain_key or 'none'} | "
-                        f"confidence={routing_result.confidence:.2f} | "
-                        f"method={routing_result.method} | "
-                        f"reasoning={routing_result.reasoning}"
+                    try:
+                        loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        loop = None
+
+                    if loop and loop.is_running():
+                        routing_result = _classify_domain_sync(
+                            db, original_question, str(user_id) if user_id else None,
+                            intent, entities, source_document_ids, domain,
+                        )
+                    else:
+                        routing_result = asyncio.run(classify_domain(
+                            db,
+                            query_text=original_question,
+                            user_id=str(user_id) if user_id else None,
+                            intent=intent,
+                            entities=entities,
+                            source_document_ids=source_document_ids,
+                            explicit_domain=domain,
+                        ))
+
+                    apply_routing(db, ticket, routing_result)
+                    _log_ticket_audit(
+                        db,
+                        action="ticket_triage_needed" if routing_result.needs_triage else "ticket_routed",
+                        ticket=ticket,
+                        actor_id=user_uuid,
+                        detail=(
+                            f"ticket_id={ticket.ticket_id} | "
+                            f"domain={routing_result.domain_key or 'none'} | "
+                            f"confidence={routing_result.confidence:.2f} | "
+                            f"method={routing_result.method} | "
+                            f"reasoning={routing_result.reasoning}"
+                        ),
                     ),
-                )
             except Exception as route_exc:
                 logger.error(
                     "[Ticket] Domain routing failed for ticket %s: %s",
                     ticket_id, route_exc
                 )
+
+        if preserve_open_status:
+            ticket.status = TicketStatus.OPEN.value
 
         db.commit()
         db.refresh(ticket)
@@ -533,15 +601,60 @@ def get_ticket_detail_enriched(
                 created_at=ql.created_at,
             )
 
+    attachments = (
+        db.query(TicketAttachment)
+        .filter(TicketAttachment.ticket_id == ticket.ticket_id)
+        .order_by(TicketAttachment.created_at.desc())
+        .all()
+    )
+
     detail = TicketDetail.model_validate(ticket)
     detail.assigned_domain_expert = assigned_expert
     detail.assigned_expert = assigned_expert
     detail.resolver_user = resolver_user
     detail.query_history = query_history
+    detail.attachments = [TicketAttachmentResponse.model_validate(a) for a in attachments]
+
+    # Sanitize internal manager-only notes for non-manager standard users
+    if caller_role in (Role.STANDARD_EMPLOYEE, Role.CLIENT_USER, Role.GUEST_USER):
+        detail.internal_notes = None
+        detail.reviewer_notes = None
+        detail.feedback = None
+
     return detail
 
 
 # ── Scoped List & Multi-Filter Querying ───────────────────────────────────────
+
+def list_user_tickets(
+    db: Session, user: User, skip: int = 0, limit: int = 50
+) -> Tuple[List[Ticket], int]:
+    """Return only tickets owned by the authenticated user."""
+    query = db.query(Ticket).filter(Ticket.user_id == user.id)
+    total = query.count()
+    tickets = query.order_by(Ticket.created_at.desc()).offset(skip).limit(limit).all()
+    return tickets, total
+
+
+def list_manager_tickets(
+    db: Session, manager: User, skip: int = 0, limit: int = 50
+) -> Tuple[List[Ticket], int]:
+    """Return tickets assigned to this manager or their authorized domains."""
+    domain_ids = get_user_authorized_domain_ids(db, manager, Role.DOMAIN_MANAGER)
+    domain_names = get_user_authorized_domain_names(db, manager, Role.DOMAIN_MANAGER)
+    scopes = [
+        Ticket.assigned_manager_id == manager.id,
+        Ticket.assigned_to == str(manager.id),
+    ]
+    if domain_ids:
+        scopes.append(Ticket.routed_domain_id.in_(domain_ids))
+    if domain_names:
+        scopes.append(func.lower(Ticket.domain).in_(domain_names))
+
+    query = db.query(Ticket).filter(or_(*scopes))
+    total = query.count()
+    tickets = query.order_by(Ticket.created_at.desc()).offset(skip).limit(limit).all()
+    return tickets, total
 
 def list_tickets_scoped(
     db: Session,
@@ -568,7 +681,7 @@ def list_tickets_scoped(
     # 1. Apply RBAC Domain Scoping
     if caller_role in (Role.PLATFORM_OWNER, Role.SUPER_ADMIN):
         scope = "global"
-    elif caller_role == Role.DOMAIN_MANAGER:
+    elif caller_role in (Role.DOMAIN_MANAGER, Role.HR, Role.ANALYST) or role_has_any_permission(caller_role, (Permission.TICKET_VIEW_DOMAIN,)):
         authorized_ids = get_user_authorized_domain_ids(db, current_user, caller_role)
         authorized_names = get_user_authorized_domain_names(db, current_user, caller_role)
 
@@ -577,18 +690,18 @@ def list_tickets_scoped(
             conditions.append(Ticket.routed_domain_id.in_(authorized_ids))
         if authorized_names:
             conditions.append(func.lower(Ticket.domain).in_(authorized_names))
-        # Domain Manager can also see tickets assigned to them personally
         if current_user and hasattr(current_user, "id"):
             conditions.append(Ticket.assigned_to == str(current_user.id))
+            conditions.append(Ticket.assigned_manager_id == current_user.id)
 
         if conditions:
             q = q.filter(or_(*conditions))
             scope = "domain_managed"
+        elif role_has_any_permission(caller_role, (Permission.TICKET_VIEW_DOMAIN,)):
+            scope = "domain_global"
         else:
             q = q.filter(Ticket.user_id == current_user.id if current_user else None)
             scope = "own"
-    elif role_has_any_permission(caller_role, (Permission.TICKET_VIEW_DOMAIN,)):
-        scope = "reviewer"
     elif current_user and hasattr(current_user, "id") and current_user.id is not None:
         q = q.filter(Ticket.user_id == current_user.id)
         scope = "own"
@@ -902,20 +1015,30 @@ def assign_ticket(
     prev_assignee = ticket.assigned_to
     if assigned_to.strip().lower() in ("unassigned", "none", "null", ""):
         ticket.assigned_to = None
+        ticket.assigned_manager_id = None
         ticket.assigned_at = None
         ticket.status = TicketStatus.OPEN.value if ticket.status == TicketStatus.ASSIGNED.value else ticket.status
     else:
+        target_user = None
         try:
             target_uid = uuid.UUID(assigned_to)
             target_user = db.query(User).filter(User.id == target_uid, User.is_active.is_(True)).first()
-            if not target_user:
-                return None
-            ticket.assigned_to = str(target_user.id)
-            ticket.assigned_at = datetime.now(timezone.utc)
-            if ticket.status in (TicketStatus.OPEN.value, TicketStatus.ROUTED.value, TicketStatus.NEEDS_TRIAGE.value):
-                ticket.status = TicketStatus.ASSIGNED.value
         except (ValueError, TypeError):
+            pass
+
+        if not target_user:
+            target_user = db.query(User).filter(func.lower(User.email) == assigned_to.strip().lower(), User.is_active.is_(True)).first()
+
+        if not target_user:
             return None
+
+        ticket.assigned_to = str(target_user.id)
+        ticket.assigned_manager_id = (
+            target_user.id if target_user.role == Role.DOMAIN_MANAGER.value else None
+        )
+        ticket.assigned_at = datetime.now(timezone.utc)
+        if ticket.status in (TicketStatus.OPEN.value, TicketStatus.ROUTED.value, TicketStatus.NEEDS_TRIAGE.value):
+            ticket.status = TicketStatus.ASSIGNED.value
 
     if notes:
         ticket.feedback = f"[{current_user.email} - Assign Note]: {notes}" + (f"\n{ticket.feedback}" if ticket.feedback else "")
@@ -1013,68 +1136,213 @@ def change_ticket_status(
 def resolve_ticket(
     db: Session,
     ticket_id: str,
-    resolution: str,
+    resolution: Optional[str],
     current_user: User,
     caller_role: Role,
     resolution_type: Optional[str] = None,
+    attachment_id: Optional[str] = None,
     internal_notes: Optional[str] = None,
     supporting_evidence: Optional[str] = None,
     supporting_document_ids: Optional[List[str]] = None,
 ) -> Optional[Ticket]:
     """
-    Resolve a ticket with domain expert verified answer (Phase 13).
-    Requires resolution, resolution_type, resolved_by, and resolved_at.
-    Stores feedback for Continuous Learning module (without mutating KB index).
+    Resolve a ticket with domain expert verified text answer and/or uploaded KB document (Phase 13, 2.6, 2.8).
+    Checks KB attachment processing status:
+    - If document processing is PENDING/PROCESSING or FAILED, refuses resolution with explicit error detail.
+    - Sets resolution_type to FILE, BOTH, or TEXT / root cause.
     """
+    from fastapi import HTTPException, status
+
     ticket = get_ticket(db, ticket_id)
     if not ticket or not can_user_access_ticket(db, ticket, current_user, caller_role):
         return None
 
-    # Validate resolution type
-    norm_res_type = (resolution_type or ResolutionType.OTHER.value).strip().upper()
-    if norm_res_type not in RESOLUTION_TYPES:
-        norm_res_type = ResolutionType.OTHER.value
+    # Check for TicketAttachment records linked to this ticket
+    attachments = (
+        db.query(TicketAttachment)
+        .filter(TicketAttachment.ticket_id == ticket.ticket_id)
+        .order_by(TicketAttachment.created_at.desc())
+        .all()
+    )
 
-    ticket.resolution = resolution.strip()
-    ticket.resolution_type = norm_res_type
+    target_attachment: Optional[TicketAttachment] = None
+    if attachment_id:
+        target_attachment = next((a for a in attachments if a.attachment_id == attachment_id), None)
+        if not target_attachment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Attachment '{attachment_id}' not found for ticket '{ticket_id}'.",
+            )
+    elif attachments:
+        target_attachment = attachments[0]
+
+    norm_res_type = (resolution_type or "").strip().upper()
+    if norm_res_type and norm_res_type not in RESOLUTION_TYPES:
+        norm_res_type = ResolutionType.TEXT.value
+
+    # Validate attachment processing status if attachment exists or resolution_type is FILE / BOTH
+    if target_attachment or norm_res_type in (ResolutionType.FILE.value, ResolutionType.BOTH.value):
+        if not target_attachment:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File-based resolution requires an uploaded knowledge-base document attachment.",
+            )
+
+        if target_attachment.status in (TicketAttachmentStatus.PENDING.value, TicketAttachmentStatus.PROCESSING.value):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Document '{target_attachment.original_filename}' processing is in progress ({target_attachment.status}). Ticket cannot be resolved until document ingestion completes.",
+            )
+
+        if target_attachment.status == TicketAttachmentStatus.FAILED.value:
+            error_detail = target_attachment.error_message or "Ingestion pipeline failed."
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Document processing failed for '{target_attachment.original_filename}': {error_detail}. Ticket cannot be resolved. Please re-upload or correct the document.",
+            )
+
+        # Confirm underlying document exists and is indexed
+        if target_attachment.document_id:
+            doc = db.query(Document).filter(Document.document_id == target_attachment.document_id).first()
+            if not doc or doc.processing_status != "indexed":
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Document '{target_attachment.original_filename}' is not fully indexed in knowledge base. Status: {doc.processing_status if doc else 'missing'}.",
+                )
+            if doc not in ticket.documents:
+                ticket.documents.append(doc)
+
+    has_text = bool(resolution and resolution.strip())
+    has_file = bool(target_attachment and target_attachment.status == TicketAttachmentStatus.COMPLETED.value)
+
+    if not has_text and not has_file:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Resolution requires either a textual explanation, an uploaded knowledge-base file, or both.",
+        )
+
+    # Determine resolution format & type
+    if norm_res_type and norm_res_type not in (ResolutionType.TEXT.value, ResolutionType.FILE.value, ResolutionType.BOTH.value):
+        res_type_final = norm_res_type
+    elif has_file and has_text:
+        res_type_final = ResolutionType.BOTH.value
+    elif has_file:
+        res_type_final = ResolutionType.FILE.value
+    else:
+        res_type_final = norm_res_type or ResolutionType.TEXT.value
+
+    if has_file and has_text:
+        res_format_final = ResolutionFormat.BOTH.value
+    elif has_file:
+        res_format_final = ResolutionFormat.FILE.value
+    else:
+        res_format_final = ResolutionFormat.TEXT.value
+
+    # Auto-generate text resolution description if only file uploaded
+    if not has_text:
+        filename = target_attachment.original_filename if target_attachment else "document"
+        final_resolution_text = f"Resolved via uploaded knowledge-base document '{filename}'."
+    else:
+        final_resolution_text = resolution.strip()
+
+    ticket.resolution = final_resolution_text
+    ticket.resolution_type = res_type_final
+    ticket.resolution_format = res_format_final
     ticket.status = TicketStatus.RESOLVED.value
-    ticket.resolved_at = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)
+    ticket.resolved_at = now
+    ticket.updated_at = now
     ticket.resolver_user_id = current_user.id
 
     if supporting_evidence is not None:
         ticket.supporting_evidence = supporting_evidence.strip() if supporting_evidence else None
 
-    if supporting_document_ids is not None:
-        ticket.supporting_document_ids = json.dumps(supporting_document_ids) if supporting_document_ids else None
+    # Sync supporting document IDs
+    doc_ids_list = []
+    if target_attachment and target_attachment.document_id:
+        doc_ids_list.append(target_attachment.document_id)
+    if supporting_document_ids:
+        for d in supporting_document_ids:
+            if d not in doc_ids_list:
+                doc_ids_list.append(d)
+    # Auto-index text resolution into Knowledge Base so RAG pipeline can immediately answer it
+    if has_text and not has_file:
+        try:
+            from app.schemas.document import ExtractedDocumentData
+            from app.services.evolution_service import process_document
+            
+            clean_q = "".join(c if c.isalnum() else "_" for c in (ticket.original_question or "ticket"))[:30].strip("_")
+            filename = f"resolution_{ticket.ticket_id}_{clean_q}.txt"
+            new_doc_uid = f"DOC_{uuid.uuid4().hex[:8].upper()}"
+            text_content = final_resolution_text.strip()
+            
+            # Format text so both question and answer are semantically retrievable
+            if ticket.original_question and ticket.original_question.lower() not in text_content.lower():
+                full_knowledge_text = f"Question: {ticket.original_question}\nAnswer: {text_content}"
+            else:
+                full_knowledge_text = text_content
+
+            domain_id_str = str(ticket.routed_domain_id) if ticket.routed_domain_id else None
+            
+            doc_data = ExtractedDocumentData(
+                document_id=new_doc_uid,
+                filename=filename,
+                original_filename=filename,
+                document_type="txt",
+                file_extension=".txt",
+                extracted_text=full_knowledge_text,
+                ocr_used=False,
+                word_count=len(full_knowledge_text.split()),
+                character_count=len(full_knowledge_text),
+                upload_date=datetime.now(timezone.utc),
+                author=current_user.email,
+                department=ticket.domain or "General",
+                domain_id=domain_id_str,
+                visibility="domain" if domain_id_str else "global",
+                language="en",
+            )
+            summary = process_document(
+                db=db,
+                doc_data=doc_data,
+                language_hint="en",
+                source=f"ticket_resolution:{ticket.ticket_id}",
+            )
+            saved_doc = summary.get("document")
+            if saved_doc and saved_doc not in ticket.documents:
+                ticket.documents.append(saved_doc)
+                if saved_doc.document_id not in doc_ids_list:
+                    doc_ids_list.append(saved_doc.document_id)
+        except Exception as kb_exc:
+            logger.warning("[Ticket] Failed to auto-index text resolution for ticket %s: %s", ticket.ticket_id, kb_exc)
+
+    if doc_ids_list:
+        ticket.supporting_document_ids = ",".join(doc_ids_list)
 
     if internal_notes:
-        note_entry = f"[{current_user.email} - Resolution Notes ({norm_res_type})]: {internal_notes.strip()}"
+        note_entry = f"[{current_user.email} - Resolution Notes ({res_type_final})]: {internal_notes.strip()}"
         ticket.feedback = f"{note_entry}\n\n{ticket.feedback}" if ticket.feedback else note_entry
 
     # ── Continuous Learning Feedback Integration ─────────────────────────────
-    # Feed the verified correction into the Continuous Learning module
-    # without mutating knowledge base vectors directly.
     if ticket.query_id:
         try:
-            existing_fb = db.query(Feedback).filter(Feedback.query_id == ticket.query_id).first()
-            if existing_fb:
-                existing_fb.correction_text = resolution.strip()
-                existing_fb.rating = "down"
-            else:
-                fb_row = Feedback(
-                    feedback_id=f"FB_{uuid.uuid4().hex[:10].upper()}",
-                    query_id=ticket.query_id,
-                    rating="down",
-                    correction_text=resolution.strip(),
-                )
-                db.add(fb_row)
-
-            # Update associated QueryLog telemetry
             ql = db.query(QueryLog).filter(QueryLog.query_id == ticket.query_id).first()
             if ql:
+                existing_fb = db.query(Feedback).filter(Feedback.query_id == ticket.query_id).first()
+                if existing_fb:
+                    existing_fb.correction_text = final_resolution_text
+                    existing_fb.rating = "down"
+                else:
+                    fb_row = Feedback(
+                        feedback_id=f"FB_{uuid.uuid4().hex[:10].upper()}",
+                        query_id=ticket.query_id,
+                        rating="down",
+                        correction_text=final_resolution_text,
+                    )
+                    db.add(fb_row)
                 ql.ticket_status = TicketStatus.RESOLVED.value
         except Exception as fb_exc:
             logger.warning("[Ticket] Continuous learning feedback integration: %s", fb_exc)
+
 
     ticket.updated_at = datetime.now(timezone.utc)
     db.commit()
@@ -1089,6 +1357,7 @@ def resolve_ticket(
         detail=(
             f"ticket_id={ticket.ticket_id} | "
             f"resolution_type={ticket.resolution_type} | "
+            f"resolution_format={ticket.resolution_format} | "
             f"resolved_by={current_user.email} | "
             f"supporting_docs={ticket.supporting_document_ids or 'none'}"
         ),
@@ -1098,8 +1367,20 @@ def resolve_ticket(
     _emit_ticket_resolved_signals(
         db=db,
         ticket=ticket,
-        resolution_type=norm_res_type,
+        resolution_type=res_type_final,
     )
+
+    # ── Phase 2.10: Ticket Resolution Notification ────────────────────────────
+    try:
+        recipient_user = db.query(User).filter(User.id == ticket.user_id).first()
+        recipient_email = recipient_user.email if recipient_user else None
+        send_ticket_resolution_notification(ticket, user_email=recipient_email, db=db)
+    except Exception as notif_exc:
+        logger.error(
+            "[Ticket] Failed to send ticket resolution notification for ticket %s: %s",
+            ticket.ticket_id,
+            notif_exc,
+        )
 
     return ticket
 
@@ -1209,13 +1490,22 @@ def update_ticket(
             ticket.assigned_to = None
             ticket.assigned_at = None
         else:
+            target_user = None
             try:
-                ticket.assigned_to = str(uuid.UUID(assigned_to))
-                ticket.assigned_at = datetime.now(timezone.utc)
-                if ticket.status == TicketStatus.OPEN.value:
-                    ticket.status = TicketStatus.ASSIGNED.value
+                target_uid = uuid.UUID(assigned_to)
+                target_user = db.query(User).filter(User.id == target_uid, User.is_active.is_(True)).first()
             except (ValueError, TypeError):
                 pass
+            if not target_user:
+                target_user = db.query(User).filter(func.lower(User.email) == assigned_to.strip().lower(), User.is_active.is_(True)).first()
+
+            if target_user:
+                ticket.assigned_to = str(target_user.id)
+                ticket.assigned_at = datetime.now(timezone.utc)
+                if ticket.status in (TicketStatus.OPEN.value, TicketStatus.ROUTED.value, TicketStatus.NEEDS_TRIAGE.value):
+                    ticket.status = TicketStatus.ASSIGNED.value
+            else:
+                ticket.assigned_to = assigned_to
 
     if resolution is not None:
         ticket.resolution = resolution or None

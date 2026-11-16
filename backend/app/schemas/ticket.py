@@ -66,6 +66,7 @@ class TicketListItem(BaseModel):
     domain: Optional[str] = None
     status: Optional[str] = "open"
     assigned_to: Optional[str] = None
+    assigned_manager_id: Optional[str] = None
     assigned_expert: Optional[UserMiniOut] = None
     assigned_at: Optional[datetime] = None
     created_at: Optional[datetime] = None
@@ -93,7 +94,7 @@ class TicketListItem(BaseModel):
     def _stringify_user_id(cls, v: object) -> Optional[str]:
         return str(v) if v is not None else None
 
-    @field_validator("assigned_to", "routed_domain_id", mode="before")
+    @field_validator("assigned_to", "assigned_manager_id", "routed_domain_id", mode="before")
     @classmethod
     def _stringify_uuid_fields(cls, v: object) -> Optional[str]:
         return str(v) if v is not None else None
@@ -151,18 +152,21 @@ class TicketDetail(BaseModel):
     domain: Optional[str] = None
     status: Optional[str] = "open"
     assigned_to: Optional[str] = None
+    assigned_manager_id: Optional[str] = None
     assigned_domain_expert: Optional[UserMiniOut] = None
     assigned_expert: Optional[UserMiniOut] = None
     assigned_at: Optional[datetime] = None
     # Phase 13: Resolution details
     resolution: Optional[str] = None
     resolution_type: Optional[str] = None
+    resolution_format: Optional[str] = None
     resolved_at: Optional[datetime] = None
     resolver_user_id: Optional[str] = None
     resolved_by: Optional[str] = None
     resolver_user: Optional[UserMiniOut] = None
     supporting_evidence: Optional[str] = None
     supporting_document_ids: List[str] = Field(default_factory=list)
+    attachments: List[Any] = Field(default_factory=list)
     feedback: Optional[str] = None
     internal_notes: Optional[str] = None
     reviewer_notes: Optional[str] = None
@@ -192,7 +196,7 @@ class TicketDetail(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    @field_validator("user_id", "resolver_user_id", "resolved_by", "assigned_to", "routed_domain_id", mode="before")
+    @field_validator("user_id", "resolver_user_id", "resolved_by", "assigned_to", "assigned_manager_id", "routed_domain_id", mode="before")
     @classmethod
     def _stringify_ids(cls, v: object) -> Optional[str]:
         return str(v) if v is not None else None
@@ -280,6 +284,17 @@ class TicketCreateRequest(BaseModel):
     domain: Optional[str] = None
     query_id: Optional[str] = None
     user_id: Optional[str] = None
+
+    @field_validator("priority")
+    @classmethod
+    def _valid_priority(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            normalized = v.strip().lower()
+            valid_priorities = [p.value.lower() for p in TicketPriority]
+            if normalized not in valid_priorities:
+                raise ValueError(f"priority must be one of {valid_priorities}")
+            return normalized
+        return v
 
     @model_validator(mode="after")
     def _ensure_threshold(self) -> TicketCreateRequest:
@@ -392,13 +407,16 @@ class TicketStatusActionRequest(BaseModel):
 
 
 class TicketResolveActionRequest(BaseModel):
-    """Request to resolve a support ticket with domain expert verified answer (Phase 13)."""
-    resolution: str = Field(
-        ..., min_length=3, description="Verified domain expert resolution / corrected answer text"
+    """Request to resolve a support ticket with domain expert verified answer (Phase 13, 2.6, 2.8)."""
+    resolution: Optional[str] = Field(
+        None, description="Verified domain expert resolution / textual answer"
     )
-    resolution_type: str = Field(
-        ...,
-        description="Root cause classification: KNOWLEDGE_MISSING, RETRIEVAL_FAILURE, INCORRECT_GENERATION, OUTDATED_DOCUMENT, ACCESS_RESTRICTION, DOCUMENT_CONFLICT, USER_CLARIFICATION, OTHER",
+    resolution_type: Optional[str] = Field(
+        default=None,
+        description="Root cause / format classification: TEXT, FILE, BOTH, KNOWLEDGE_MISSING, RETRIEVAL_FAILURE, INCORRECT_GENERATION, OUTDATED_DOCUMENT, ACCESS_RESTRICTION, DOCUMENT_CONFLICT, USER_CLARIFICATION, OTHER",
+    )
+    attachment_id: Optional[str] = Field(
+        None, description="Optional TicketAttachment ID for file-based resolution"
     )
     internal_notes: Optional[str] = Field(
         None, description="Optional internal reviewer notes or rationale"
@@ -412,11 +430,13 @@ class TicketResolveActionRequest(BaseModel):
 
     @field_validator("resolution_type")
     @classmethod
-    def _validate_res_type(cls, v: str) -> str:
-        norm = v.strip().upper()
-        if norm not in RESOLUTION_TYPES:
-            raise ValueError(f"resolution_type must be one of {RESOLUTION_TYPES}")
-        return norm
+    def _validate_res_type(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            norm = v.strip().upper()
+            if norm not in RESOLUTION_TYPES:
+                raise ValueError(f"resolution_type must be one of {RESOLUTION_TYPES}")
+            return norm
+        return v
 
 
 class TicketCloseActionRequest(BaseModel):
@@ -544,3 +564,29 @@ class TicketConfigUpdateRequest(BaseModel):
         elif self.threshold is None and self.ticket_confidence_threshold is not None:
             self.threshold = self.ticket_confidence_threshold
         return self
+
+
+# ── Ticket Attachment Schemas (Phase 2.7) ────────────────────────────────────
+
+class TicketAttachmentResponse(BaseModel):
+    """Details of a knowledge-base document uploaded for a ticket."""
+    attachment_id: str
+    ticket_id: str
+    document_id: Optional[str] = None
+    job_id: Optional[str] = None
+    original_filename: str
+    file_type: str
+    file_size: Optional[int] = None
+    status: str
+    error_message: Optional[str] = None
+    uploaded_by_id: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+    @field_validator("uploaded_by_id", mode="before")
+    @classmethod
+    def _stringify_uuid(cls, v: object) -> Optional[str]:
+        return str(v) if v is not None else None
+

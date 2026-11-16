@@ -69,6 +69,8 @@ const post = <T>(path: string, body?: unknown) =>
   request<T>(path, { method: 'POST', body: body !== undefined ? JSON.stringify(body) : undefined })
 const patch = <T>(path: string, body: unknown) =>
   request<T>(path, { method: 'PATCH', body: JSON.stringify(body) })
+const uploadFile = <T>(path: string, body: FormData) =>
+  request<T>(path, { method: 'POST', body })
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -895,6 +897,9 @@ export const queryLogsApi = {
 export type TicketStatus = 'open' | 'needs_triage' | 'routed' | 'assigned' | 'in_progress' | 'in_review' | 'resolved' | 'closed' | 'rejected' | 'dismissed'
 
 export type ResolutionType =
+  | 'TEXT'
+  | 'FILE'
+  | 'BOTH'
   | 'KNOWLEDGE_MISSING'
   | 'RETRIEVAL_FAILURE'
   | 'INCORRECT_GENERATION'
@@ -905,6 +910,21 @@ export type ResolutionType =
   | 'OTHER'
 
 export const RESOLUTION_TYPE_LABELS: Record<ResolutionType, { label: string; description: string; color: string }> = {
+  TEXT: {
+    label: 'Text Resolution',
+    description: 'Textual answer provided directly by Domain Manager.',
+    color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25',
+  },
+  FILE: {
+    label: 'File-Based',
+    description: 'Resolved using uploaded knowledge-base document.',
+    color: 'bg-blue-500/15 text-blue-400 border-blue-500/25',
+  },
+  BOTH: {
+    label: 'File & Explanation',
+    description: 'Resolved using both textual answer and uploaded document.',
+    color: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/25',
+  },
   KNOWLEDGE_MISSING: {
     label: 'Knowledge Missing',
     description: 'Information is missing from the knowledge base.',
@@ -977,6 +997,8 @@ export interface TicketOut {
   assigned_expert?: { id: string; email?: string; full_name?: string; role?: string } | null
   resolution?: string | null
   resolution_type?: ResolutionType | string | null
+  resolution_format?: string | null
+  attachments?: TicketAttachment[]
   supporting_evidence?: string | null
   supporting_document_ids?: string[]
   resolved_by?: string | null
@@ -1033,8 +1055,9 @@ export interface TicketUpdate {
 }
 
 export interface TicketResolveRequest {
-  resolution: string
-  resolution_type: ResolutionType | string
+  resolution?: string
+  resolution_type?: ResolutionType | string
+  attachment_id?: string
   internal_notes?: string
   supporting_evidence?: string
   supporting_document_ids?: string[]
@@ -1065,14 +1088,63 @@ export const ticketsApi = {
     const qs = params.toString()
     return get<TicketListResponse>(`/tickets/${qs ? `?${qs}` : ''}`)
   },
+  listManager: (opts?: { skip?: number; limit?: number }) => {
+    const params = new URLSearchParams()
+    if (opts?.skip !== undefined) params.set('skip', String(opts.skip))
+    if (opts?.limit !== undefined) params.set('limit', String(opts.limit))
+    const qs = params.toString()
+    return get<TicketListResponse>(`/tickets/manager${qs ? `?${qs}` : ''}`)
+  },
+  listMy: (opts?: { skip?: number; limit?: number }) => {
+    const params = new URLSearchParams()
+    if (opts?.skip !== undefined) params.set('skip', String(opts.skip))
+    if (opts?.limit !== undefined) params.set('limit', String(opts.limit))
+    const qs = params.toString()
+    return get<TicketListResponse>(`/tickets/my${qs ? `?${qs}` : ''}`)
+  },
+  dashboard: (domain?: string) => {
+    const qs = domain ? `?domain=${encodeURIComponent(domain)}` : ''
+    return get<any>(`/tickets/dashboard${qs}`)
+  },
   stats: () => get<TicketStatsResponse>('/tickets/stats'),
   get: (ticketId: string) => get<TicketOut>(`/tickets/${ticketId}`),
   update: (ticketId: string, body: TicketUpdate) => patch<TicketOut>(`/tickets/${ticketId}`, body),
+  updateStatus: (ticketId: string, status: string, notes?: string) =>
+    request<TicketOut>(`/tickets/${ticketId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, notes }),
+    }),
+  assign: (ticketId: string, assignedTo: string, notes?: string) =>
+    request<TicketOut>(`/tickets/${ticketId}/assign`, {
+      method: 'PUT',
+      body: JSON.stringify({ assigned_to: assignedTo, notes }),
+    }),
   resolve: (ticketId: string, body: TicketResolveRequest) => post<TicketOut>(`/tickets/${ticketId}/resolve`, body),
   close: (ticketId: string, body?: { feedback?: string }) => post<TicketOut>(`/tickets/${ticketId}/close`, body),
   notes: (ticketId: string, notes: string) => post<TicketOut>(`/tickets/${ticketId}/notes`, { notes }),
   createKnowledgeUpdate: (ticketId: string, body?: Partial<KnowledgeUpdateRequestCreate>) =>
     post<KnowledgeUpdateRequest>(`/tickets/${ticketId}/create-knowledge-update`, body || {}),
+  uploadKb: (ticketId: string, file: File, sync?: boolean) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return uploadFile<TicketAttachment>(`/tickets/${ticketId}/upload-kb${sync ? '?sync=true' : ''}`, formData)
+  },
+  listAttachments: (ticketId: string) => get<TicketAttachment[]>(`/tickets/${ticketId}/attachments`),
+}
+
+export interface TicketAttachment {
+  attachment_id: string
+  ticket_id: string
+  document_id?: string | null
+  job_id?: string | null
+  original_filename: string
+  file_type: string
+  file_size?: number | null
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  error_message?: string | null
+  uploaded_by_id?: string | null
+  created_at: string
+  updated_at: string
 }
 
 export const feedbackApi = {
@@ -1283,3 +1355,34 @@ export const learningApi = {
     return get<Record<string, unknown>>(`/learning/improvement-report${qs}`)
   },
 }
+
+// ── Notifications ────────────────────────────────────────────────────────────
+
+export interface NotificationItem {
+  id: string
+  user_id: string
+  ticket_id: string | null
+  title: string
+  message: string
+  type: 'info' | 'success' | 'warning' | 'error'
+  action_type: string | null
+  action_data: string | null
+  read: boolean
+  created_at: string
+}
+
+export interface NotificationListResponse {
+  total: number
+  unread_count: number
+  notifications: NotificationItem[]
+}
+
+export const notificationsApi = {
+  list: (skip = 0, limit = 50) =>
+    get<NotificationListResponse>(`/notifications?skip=${skip}&limit=${limit}`),
+  markAsRead: (id: string) =>
+    patch<NotificationItem>(`/notifications/${id}/read`, {}),
+  markAllRead: () =>
+    post<{ status: string; marked_read: number }>('/notifications/mark-all-read'),
+}
+

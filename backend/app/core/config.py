@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     temp_upload_dir: str = "./data/tmp_uploads"
     doc_id_prefix: str = "DOC"
     # Comma-separated list of allowed extensions
-    allowed_extensions: str = ".pdf,.docx,.doc,.txt,.html,.htm,.pptx,.ppt,.csv,.xlsx,.xls"
+    allowed_extensions: str = ".pdf,.docx,.doc,.txt,.html,.htm,.pptx,.ppt,.csv,.xlsx,.xls,.png,.jpg,.jpeg,.tiff,.bmp,.webp"
 
     # ── Chunking (Module 2 – Phase 3) ─────────────────────────────────────────
     chunk_size: int = 1000          # target characters per chunk
@@ -189,7 +189,7 @@ class Settings(BaseSettings):
     # threshold, a review ticket is raised automatically. The threshold is
     # configurable and can be updated by admins via API.
     ticketing_enabled: bool = True
-    ticket_confidence_threshold: float = 0.5  # Min confidence to avoid ticket (0-1)
+    ticket_confidence_threshold: float = 0.2  # Min confidence to avoid ticket (0-1)
     ticket_default_priority: str = "medium"   # Priority if not calculated
     ticket_default_domain: str = "General"    # Fallback domain for tickets
     ticket_priority_cutoff_critical: float = 0.3  # confidence < this = CRITICAL
@@ -198,6 +198,17 @@ class Settings(BaseSettings):
     ticket_priority_cutoff_low: float = 0.9      # confidence < this = LOW
     # Auto-increment ticket ID prefix
     ticket_id_prefix: str = "TKT"
+
+    # ── Notification & Email Configuration ─────────────────────────────────────
+    smtp_enabled: bool = False
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = "support@enterprise-rag.com"
+    smtp_from_name: str = "Enterprise RAG Intelligence"
+    smtp_use_tls: bool = True
+    frontend_base_url: str = "http://localhost:3000"
 
     # ── Domain-Based Ticket Routing (Phase 11) ────────────────────────────
     domain_routing_enabled: bool = True          # Master switch for auto domain routing

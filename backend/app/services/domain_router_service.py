@@ -456,6 +456,46 @@ async def classify_domain(
     return _create_triage_result(query_text)
 
 
+def classify_domain_sync(
+    db: Session,
+    query_text: str,
+    user_id: Optional[str] = None,
+    intent: Optional[str] = None,
+    entities: Optional[list] = None,
+    source_document_ids: Optional[list[str]] = None,
+    explicit_domain: Optional[str] = None,
+) -> DomainRoutingResult:
+    """Run the non-LLM domain strategies for synchronous ticket workflows."""
+    if not settings.domain_routing_enabled:
+        return DomainRoutingResult(
+            domain_key=None,
+            domain_id=None,
+            confidence=0.0,
+            method="disabled",
+            needs_triage=True,
+            reasoning="Domain routing is disabled.",
+        )
+
+    threshold = settings.domain_routing_confidence_threshold
+    strategies = (
+        (_try_explicit_domain, (db, explicit_domain)),
+        (_try_user_domain, (db, user_id)),
+        (_try_intent_keywords, (db, query_text, intent)),
+        (_try_ner_entities, (db, entities)),
+        (_try_document_domains, (db, source_document_ids)),
+    )
+    for strategy, args in strategies:
+        result = strategy(*args)
+        if result and result.confidence >= threshold:
+            return result
+
+    logger.warning(
+        "[DomainRouter] No synchronous classification matched query: '%s...'",
+        query_text[:60],
+    )
+    return _create_triage_result(query_text)
+
+
 def get_domain_managers(
     db: Session, domain_id: UUID
 ) -> List[User]:

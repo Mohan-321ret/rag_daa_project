@@ -91,9 +91,9 @@ export default function GoogleSignInButton({
   return (
     <div>
       <div className="flex items-center gap-3 my-5">
-        <div className="flex-1 h-px bg-white/[0.08]" />
-        <span className="text-[11px] text-white/30 uppercase tracking-wider">or</span>
-        <div className="flex-1 h-px bg-white/[0.08]" />
+        <div className="flex-1 h-px bg-gray-300 dark:bg-white/[0.08]" />
+        <span className="text-[11px] text-gray-400 dark:text-white/30 uppercase tracking-wider">or</span>
+        <div className="flex-1 h-px bg-gray-300 dark:bg-white/[0.08]" />
       </div>
       <div ref={containerRef} className="flex justify-center min-h-[44px]" />
     </div>

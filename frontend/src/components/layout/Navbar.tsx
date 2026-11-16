@@ -1,11 +1,12 @@
 'use client'
 import { usePathname, useRouter } from 'next/navigation'
-import { Bell, Search, Sun, Moon, ChevronDown, Check, Building2, X } from 'lucide-react'
+import { Bell, Search, Sun, Moon, ChevronDown, Check, Building2, X, MessageSquare, ExternalLink } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAppStore } from '@/store/appStore'
 import { cn, formatRelativeTime } from '@/lib/utils'
+import { notificationsApi, type NotificationItem } from '@/lib/api'
 
 const breadcrumbMap: Record<string, string> = {
   '/dashboard': 'Dashboard', '/ingestion': 'Knowledge Ingestion', '/processing': 'Document Processing',
@@ -21,13 +22,69 @@ export function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
   const { theme, setTheme } = useTheme()
-  const { notifications, clearNotifications, activeWorkspace, setActiveWorkspace, currentUser, logout } = useAppStore()
+  const { notifications, clearNotifications, activeWorkspace, setActiveWorkspace, currentUser, logout, isAuthenticated } = useAppStore()
   const [showNotifs, setShowNotifs] = useState(false)
   const [showWorkspace, setShowWorkspace] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
-  const unread = notifications.filter(n => !n.read).length
-  const pageTitle = breadcrumbMap[pathname] ?? 'Dashboard'
 
+  // Real backend notifications state
+  const [dbNotifs, setDbNotifs] = useState<NotificationItem[]>([])
+  const [dbUnread, setDbUnread] = useState(0)
+
+  const fetchNotifs = useCallback(async () => {
+    try {
+      const res = await notificationsApi.list(0, 30)
+      if (res && Array.isArray(res.notifications)) {
+        setDbNotifs(res.notifications)
+        setDbUnread(res.unread_count)
+      }
+    } catch {
+      // User may be offline or unauthenticated
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchNotifs()
+    const timer = setInterval(fetchNotifs, 30000)
+    return () => clearInterval(timer)
+  }, [fetchNotifs, isAuthenticated])
+
+  const handleMarkRead = async (id: string) => {
+    try {
+      await notificationsApi.markAsRead(id)
+      setDbNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
+      setDbUnread(prev => Math.max(0, prev - 1))
+    } catch {
+      // Fallback
+    }
+  }
+
+  const handleMarkAllRead = async () => {
+    try {
+      await notificationsApi.markAllRead()
+      setDbNotifs(prev => prev.map(n => ({ ...n, read: true })))
+      setDbUnread(0)
+      clearNotifications()
+    } catch {
+      clearNotifications()
+    }
+  }
+
+  const unread = dbNotifs.length > 0 ? dbUnread : notifications.filter(n => !n.read).length
+  const displayNotifs = dbNotifs.length > 0 ? dbNotifs : notifications.map(n => ({
+    id: n.id,
+    user_id: '',
+    ticket_id: null,
+    title: n.title,
+    message: n.message,
+    type: n.type,
+    action_type: null,
+    action_data: null,
+    read: n.read,
+    created_at: n.timestamp,
+  }))
+
+  const pageTitle = breadcrumbMap[pathname] ?? 'Dashboard'
   const dropdownCls = 'absolute right-0 top-11 bg-white dark:bg-[#12121f] border border-gray-200 dark:border-white/10 rounded-2xl shadow-xl dark:shadow-2xl overflow-hidden z-50'
 
   return (
@@ -80,7 +137,7 @@ export function Navbar() {
 
       {/* Notifications */}
       <div className="relative">
-        <button onClick={() => { setShowNotifs(!showNotifs); setShowWorkspace(false); setShowProfile(false) }}
+        <button onClick={() => { setShowNotifs(!showNotifs); setShowWorkspace(false); setShowProfile(false); if (!showNotifs) fetchNotifs(); }}
           className="relative w-8 h-8 rounded-xl bg-gray-100 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] flex items-center justify-center text-gray-500 dark:text-white/40 hover:text-gray-800 dark:hover:text-white/80 hover:border-gray-300 dark:hover:border-white/15 transition-all">
           <Bell className="w-3.5 h-3.5" />
           {unread > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full text-[9px] text-white flex items-center justify-center font-bold">{unread}</span>}
@@ -88,24 +145,80 @@ export function Navbar() {
         <AnimatePresence>
           {showNotifs && (
             <motion.div initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }}
-              className={cn(dropdownCls, 'w-80')}>
+              className={cn(dropdownCls, 'w-96')}>
               <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/[0.06]">
-                <span className="text-xs font-semibold text-gray-800 dark:text-white">Notifications</span>
-                <button onClick={clearNotifications} className="text-[10px] text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">Mark all read</button>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-gray-800 dark:text-white">Notifications</span>
+                  {unread > 0 && <span className="text-[10px] bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold px-1.5 py-0.5 rounded-full">{unread} new</span>}
+                </div>
+                <button onClick={handleMarkAllRead} className="text-[10px] text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">Mark all read</button>
               </div>
-              <div className="max-h-72 overflow-y-auto">
-                {notifications.map(n => (
-                  <div key={n.id} className={cn('px-4 py-3 border-b border-gray-50 dark:border-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-all', !n.read && 'bg-blue-50/50 dark:bg-blue-500/[0.04]')}>
-                    <div className="flex items-start gap-2">
-                      <div className={cn('w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0', { 'bg-emerald-500': n.type === 'success', 'bg-blue-500': n.type === 'info', 'bg-amber-500': n.type === 'warning', 'bg-red-500': n.type === 'error' })} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-gray-800 dark:text-white/80">{n.title}</p>
-                        <p className="text-[11px] text-gray-500 dark:text-white/40 mt-0.5 leading-tight">{n.message}</p>
-                        <p className="text-[10px] text-gray-400 dark:text-white/25 mt-1">{formatRelativeTime(n.timestamp)}</p>
+              <div className="max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-white/[0.04]">
+                {displayNotifs.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-gray-400 dark:text-white/30">No notifications</div>
+                ) : (
+                  displayNotifs.map(n => {
+                    let parsedData: any = null
+                    try {
+                      if (n.action_data) parsedData = JSON.parse(n.action_data)
+                    } catch {}
+
+                    return (
+                      <div key={n.id} onClick={() => !n.read && handleMarkRead(n.id)}
+                        className={cn('px-4 py-3.5 transition-all cursor-pointer hover:bg-gray-50 dark:hover:bg-white/[0.03]', !n.read && 'bg-blue-50/40 dark:bg-blue-500/[0.04]')}>
+                        <div className="flex items-start gap-2.5">
+                          <div className={cn('w-2 h-2 rounded-full mt-1.5 flex-shrink-0', {
+                            'bg-emerald-500': n.type === 'success',
+                            'bg-blue-500': n.type === 'info',
+                            'bg-amber-500': n.type === 'warning',
+                            'bg-red-500': n.type === 'error'
+                          })} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1">
+                              <p className="text-xs font-semibold text-gray-800 dark:text-white/90">{n.title}</p>
+                              {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />}
+                            </div>
+                            <p className="text-[11px] text-gray-600 dark:text-white/60 mt-1 leading-relaxed">{n.message}</p>
+
+                            {/* Interactive RAG Action Buttons */}
+                            {parsedData && (
+                              <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-gray-100 dark:border-white/[0.06]">
+                                {parsedData.query && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      if (!n.read) handleMarkRead(n.id)
+                                      setShowNotifs(false)
+                                      router.push(`/llm?q=${encodeURIComponent(parsedData.query)}`)
+                                    }}
+                                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold transition-colors shadow-sm"
+                                  >
+                                    <MessageSquare className="w-3 h-3" />
+                                    Re-run in Chat
+                                  </button>
+                                )}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    if (!n.read) handleMarkRead(n.id)
+                                    setShowNotifs(false)
+                                    router.push('/tickets')
+                                  }}
+                                  className="flex items-center gap-1 px-2 py-1 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/[0.06] text-gray-700 dark:text-white/80 text-[11px] transition-colors"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                  View Ticket
+                                </button>
+                              </div>
+                            )}
+
+                            <p className="text-[10px] text-gray-400 dark:text-white/30 mt-1.5">{formatRelativeTime(n.created_at)}</p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
+                    )
+                  })
+                )}
               </div>
             </motion.div>
           )}

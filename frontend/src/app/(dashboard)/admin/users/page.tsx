@@ -392,13 +392,13 @@ function PermissionsViewerModal({ user, onClose }: { user: UserOut | null; onClo
   return (
     <Modal open={!!user} onClose={onClose} title={`Permissions — ${user ? (ROLE_LABELS[user.role as Role] ?? user.role) : ''}`} maxWidth="max-w-md">
       {loading ? (
-        <div className="flex justify-center py-8"><Loader2 className="w-4 h-4 text-white/30 animate-spin" /></div>
+        <div className="flex justify-center py-8"><Loader2 className="w-4 h-4 text-gray-400 dark:text-white/30 animate-spin" /></div>
       ) : perms.length === 0 ? (
-        <p className="text-xs text-white/30">This role holds no permissions, or you don&apos;t have access to view the matrix.</p>
+        <p className="text-xs text-gray-400 dark:text-white/30">This role holds no permissions, or you don&apos;t have access to view the matrix.</p>
       ) : (
         <div className="flex flex-wrap gap-1.5 max-h-80 overflow-y-auto">
           {perms.sort().map(p => (
-            <span key={p} className="text-[11px] font-mono bg-white/[0.05] text-white/60 px-2 py-1 rounded-lg">{p}</span>
+            <span key={p} className="text-[11px] font-mono bg-gray-100 dark:bg-white/[0.05] text-gray-600 dark:text-white/60 px-2 py-1 rounded-lg">{p}</span>
           ))}
         </div>
       )}
@@ -432,7 +432,7 @@ function DomainsPanel() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-white/40">{domains.length} domain{domains.length === 1 ? '' : 's'}</p>
+        <p className="text-xs text-gray-400 dark:text-white/40">{domains.length} domain{domains.length === 1 ? '' : 's'}</p>
         <Can permission={Permission.DOMAIN_MANAGE}>
           <Btn size="sm" onClick={() => { setEditing(null); setFormOpen(true) }}><Plus className="w-3.5 h-3.5" /> Create Domain</Btn>
         </Can>

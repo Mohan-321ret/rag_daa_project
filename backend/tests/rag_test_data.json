@@ -1,0 +1,110 @@
+[
+  {
+    "id": "Q01",
+    "question": "What percentage of net annual contract value do Enhanced, Premier, and Mission Critical support plans cost?",
+    "ground_truth": "Enhanced costs 8%, Premier costs 15%, and Mission Critical costs 22% of net annual contract value.",
+    "expected_source": "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx"
+  },
+  {
+    "id": "Q02",
+    "question": "How does the support guide define response time?",
+    "ground_truth": "Response time is measured from case creation to the first substantive human response.",
+    "expected_source": "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx"
+  },
+  {
+    "id": "Q03",
+    "question": "Are support resolution times contractually committed?",
+    "ground_truth": "No. Response targets are contractual, but resolution times are targets only and are not contractually committed because resolution depends on factors such as the customer environment and third-party dependencies.",
+    "expected_source": "OPS-SUP-018_Customer_Support_SLA_and_Escalation_v4.0.docx"
+  },
+  {
+    "id": "Q04",
+    "question": "How long does standard vendor onboarding take, and how long can onboarding take when a full security assessment is required?",
+    "ground_truth": "Standard vendor onboarding takes 10 to 15 working days. It can take up to 30 working days when a full security assessment is required.",
+    "expected_source": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx"
+  },
+  {
+    "id": "Q05",
+    "question": "When must a purchase order exist in relation to delivery of goods or services?",
+    "ground_truth": "A purchase order must exist before goods or services are delivered. An invoice without a matching purchase order is held in exception and returned to the requester.",
+    "expected_source": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx"
+  },
+  {
+    "id": "Q06",
+    "question": "How is total contract value calculated for procurement approval thresholds?",
+    "ground_truth": "Total contract value is the aggregate value over the full contract term, including all renewal options, rather than the annual value. Splitting a purchase to avoid a threshold is a disciplinary matter.",
+    "expected_source": "FIN-POL-009_Procurement_and_Vendor_Approval_Policy_v3.0.docx"
+  },
+  {
+    "id": "Q07",
+    "question": "What are the standard weekly working hours and core collaboration hours in the employee handbook?",
+    "ground_truth": "Standard working hours are 40 hours per week. Core collaboration hours are 11:00 to 16:00 in the employee's registered home time zone.",
+    "expected_source": "HR-POL-001_Employee_Handbook_v3.2.docx"
+  },
+  {
+    "id": "Q08",
+    "question": "How many days per week must employees assigned to an office attend in person under the hybrid work standard?",
+    "ground_truth": "Effective 1 July 2025, employees assigned to a Contoso office must attend that office at least three days per calendar week.",
+    "expected_source": "HR-POL-001_Employee_Handbook_v3.2.docx"
+  },
+  {
+    "id": "Q09",
+    "question": "How many fully remote weeks per financial year may a manager approve for personal circumstances?",
+    "ground_truth": "A manager may approve up to eight fully remote weeks per financial year. More than eight weeks requires Director-level approval and notification to People Operations at least 15 working days in advance.",
+    "expected_source": "HR-POL-001_Employee_Handbook_v3.2.docx"
+  },
+  {
+    "id": "Q10",
+    "question": "What are the air-travel class rules for economy, premium economy, and business class?",
+    "ground_truth": "Economy class is standard for all employees and routes. Premium economy is permitted when the scheduled single-leg flight exceeds six hours. Business class is permitted for Band 8 and above when the scheduled single-leg flight exceeds nine hours.",
+    "expected_source": "HR-POL-014_Travel_and_Expense_Policy_v2.0.docx"
+  },
+  {
+    "id": "Q11",
+    "question": "How far in advance should travel tickets be booked, and what is required for a booking made later?",
+    "ground_truth": "Tickets should be booked at least 14 calendar days before departure. A booking made within 14 days requires documented business justification in the Travel Request.",
+    "expected_source": "HR-POL-014_Travel_and_Expense_Policy_v2.0.docx"
+  },
+  {
+    "id": "Q12",
+    "question": "When must a new joiner complete mandatory training, and what happens to production access until it is complete?",
+    "ground_truth": "The four mandatory training items must be completed within 30 days of joining. Access to production systems is withheld until all four are complete.",
+    "expected_source": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx"
+  },
+  {
+    "id": "Q13",
+    "question": "What standard hardware does every employee receive, and who approves a second monitor?",
+    "ground_truth": "Every employee receives one external monitor, a keyboard and mouse set, and a headset. A line manager must approve a second monitor.",
+    "expected_source": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx"
+  },
+  {
+    "id": "Q14",
+    "question": "When are a leaver's accounts disabled?",
+    "ground_truth": "The Identity Team disables all accounts at 18:00 local time on the employee's last working day.",
+    "expected_source": "IT-SVC-003_New_Joiner_IT_Provisioning_SOP_v2.6.docx"
+  },
+  {
+    "id": "Q15",
+    "question": "What must be recorded before a new personal-data processing activity can begin?",
+    "ground_truth": "The activity must be recorded in the Record of Processing Activities with a documented lawful basis, and the entry must be approved by the Data Protection Officer before the business unit begins processing.",
+    "expected_source": "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx"
+  },
+  {
+    "id": "Q16",
+    "question": "Within what time must a privacy request be logged, and what should an employee do if it is received directly?",
+    "ground_truth": "Every request must be logged in the Privacy Request Register within one working day. An employee who receives one directly must forward it to the Privacy Operations mailbox immediately and must not respond substantively.",
+    "expected_source": "LEG-CMP-005_Data_Privacy_and_Compliance_Guide_v2.4.docx"
+  },
+  {
+    "id": "Q17",
+    "question": "What are the listed common causes of an ingestion job remaining in extracting for more than 30 minutes?",
+    "ground_truth": "The listed common causes are a PDF without a text layer when OCR is not enabled, a password-protected document, or a declared MIME type that does not match the file's actual content.",
+    "expected_source": "KB-TSG_Troubleshooting_Guides.docx"
+  },
+  {
+    "id": "Q18",
+    "question": "For a scanned PDF in a stalled ingestion job, what remediation does the troubleshooting guide recommend?",
+    "ground_truth": "Enable OCR at the workspace level under Settings > Ingestion > OCR fallback, then resubmit the job. OCR increases extraction time roughly threefold.",
+    "expected_source": "KB-TSG_Troubleshooting_Guides.docx"
+  }
+]

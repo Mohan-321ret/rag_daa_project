@@ -1,5 +1,6 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Send, Bot, User, Copy, ThumbsUp, ThumbsDown, BookOpen, BarChart2, RefreshCw, ShieldCheck, AlertTriangle } from 'lucide-react'
@@ -32,7 +33,11 @@ function TypingIndicator() {
   )
 }
 
-export default function LLMPage() {
+function LLMChatContent() {
+  const searchParams = useSearchParams()
+  const initialQuery = searchParams.get('q')
+  const autoRanRef = useRef(false)
+
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -42,6 +47,39 @@ export default function LLMPage() {
   const { data: modelsData } = useQuery({ queryKey: ['llm-models'], queryFn: () => llmApi.models() })
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, loading])
+
+  useEffect(() => {
+    if (initialQuery && !autoRanRef.current) {
+      autoRanRef.current = true
+      setInput(initialQuery)
+      const runQuery = async () => {
+        const userMsg: Message = { id: Date.now().toString(), role: 'user', content: initialQuery, timestamp: new Date() }
+        setMessages(prev => [...prev, userMsg])
+        setLoading(true)
+        try {
+          const result = await ragApi.query(initialQuery, model ? { model } : undefined)
+          const aiMsg: Message = {
+            id: (Date.now() + 1).toString(), role: 'assistant',
+            content: result.answer,
+            sources: result.sources,
+            isGrounded: result.is_grounded,
+            confidenceScore: result.confidence_score,
+            latency: result.latency_ms,
+            route: result.retrieval_route?.route,
+            queryId: result.query_id,
+            timestamp: new Date(),
+          }
+          setMessages(prev => [...prev, aiMsg])
+        } catch (err) {
+          const message = err instanceof ApiError ? err.message : 'Something went wrong reaching the RAG pipeline.'
+          setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'assistant', content: message, error: true, timestamp: new Date() }])
+        } finally {
+          setLoading(false)
+        }
+      }
+      runQuery()
+    }
+  }, [initialQuery, model])
 
   const handleSend = async () => {
     if (!input.trim() || loading) return
@@ -256,3 +294,12 @@ function RagStatusPanel() {
     </div>
   )
 }
+
+export default function LLMPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-gray-500">Loading conversation...</div>}>
+      <LLMChatContent />
+    </Suspense>
+  )
+}
+

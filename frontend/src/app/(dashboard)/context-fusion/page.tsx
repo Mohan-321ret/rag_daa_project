@@ -33,17 +33,18 @@ export default function ContextFusionPage() {
 
       <Card>
         <div className="flex gap-3">
-          <div className="flex-1 flex items-center gap-3 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 focus-within:border-blue-500/50 transition-all">
-            <Search className="w-4 h-4 text-white/30 flex-shrink-0" />
+          <div className="flex-1 flex items-center gap-3 bg-gray-50 border border-gray-200 dark:bg-white/[0.04] dark:border-white/[0.08] rounded-xl px-4 py-3 focus-within:border-blue-500/50 transition-all">
+            <Search className="w-4 h-4 text-gray-400 dark:text-white/30 flex-shrink-0" />
             <input value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleFuse()}
               placeholder="Enter a query to run through the fusion pipeline..."
-              className="flex-1 bg-transparent text-sm text-white placeholder:text-white/25 outline-none" />
+              className="flex-1 bg-transparent text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/25 outline-none" />
           </div>
           <button onClick={handleFuse} disabled={!query.trim() || loading} className="flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 text-sm font-semibold text-white hover:from-blue-500 hover:to-violet-500 transition-all disabled:opacity-50">
             <Zap className="w-4 h-4" /> Fuse Context
           </button>
         </div>
       </Card>
+
 
       {error && <Card><p className="text-sm text-red-400 text-center py-2">{error}</p></Card>}
 
